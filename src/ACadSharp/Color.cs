@@ -420,11 +420,11 @@ namespace ACadSharp
 			new byte[] { 76, 38, 47 },
 			new byte[] { 38, 0, 9 },
 			new byte[] { 88, 19, 23 },
-			new byte[] { 0, 0, 0 },
-			new byte[] { 101, 101, 101 },
-			new byte[] { 102, 102, 102 },
-			new byte[] { 153, 153, 153 },
-			new byte[] { 204, 204, 204 },
+			new byte[] { 84, 84, 84 },
+			new byte[] { 118, 118, 118 },
+			new byte[] { 152, 152, 152 },
+			new byte[] { 186, 186, 186 },
+			new byte[] { 219, 219, 219 },
 			new byte[] { 255, 255, 255 }
 		};
 
