@@ -105,7 +105,11 @@ public class Shape : Entity, IOrientable
 	public override void ApplyTransform(Transform transform)
 	{
 		this.Normal = this.transformNormal(transform, this.Normal);
-		this.InsertionPoint = transform.ApplyTranslation(this.InsertionPoint);
+
+		// InsertionPoint is a WCS point, it needs the full transform, not just the translation,
+		// or a shape inside a rotated or scaled block lands wrong.
+		this.InsertionPoint = transform.ApplyTransform(this.InsertionPoint);
+		this.Size *= transform.Scale.X;
 	}
 
 	/// <inheritdoc/>
