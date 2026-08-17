@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using ACadSharp.Attributes;
 using ACadSharp.Tables;
 using CSMath;
@@ -10,6 +11,7 @@ public partial class MultiLeaderObjectContextData
 	/// <summary>
 	/// Represents a leader line of a <see cref="MultiLeaderObjectContextData"/> object.
 	/// </summary>
+	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 	public class LeaderLine
 	{
 		/// <summary>

@@ -1,7 +1,8 @@
-﻿using ACadSharp.Attributes;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using ACadSharp.Attributes;
 
 namespace ACadSharp;
 
@@ -46,7 +47,7 @@ public class DxfClassMap : DxfMapBase
 	/// </remarks>
 	/// <typeparam name="T">Type of CadObject to map.</typeparam>
 	/// <returns>Mapped class</returns>
-	public static DxfClassMap Create<T>()
+	public static DxfClassMap Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>()
 		where T : CadObject
 	{
 		return Create(typeof(T));
@@ -58,7 +59,7 @@ public class DxfClassMap : DxfMapBase
 	/// <typeparam name="T">The type of CAD object for which to create the class map. Must inherit from CadObject.</typeparam>
 	/// <param name="obj">The CAD object instance to associate with the created class map.</param>
 	/// <returns>A DxfClassMap instance representing the mapping for the specified CAD object type and instance.</returns>
-	public static DxfClassMap Create<T>(T obj)
+	public static DxfClassMap Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(T obj)
 		where T : CadObject
 	{
 		return Create(typeof(T), obj: obj);
@@ -78,7 +79,7 @@ public class DxfClassMap : DxfMapBase
 		return $"DxfClassMap:{this.Name}";
 	}
 
-	internal static DxfClassMap Create(Type type, string name = null, CadObject obj = null)
+	internal static DxfClassMap Create([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type type, string name = null, CadObject obj = null)
 	{
 		if (!_cache.TryGetValue(type, out var classMap) || obj != null)
 		{

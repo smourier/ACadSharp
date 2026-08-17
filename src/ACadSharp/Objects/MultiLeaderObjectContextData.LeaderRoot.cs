@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using ACadSharp.Attributes;
 using CSMath;
 
@@ -13,6 +14,7 @@ namespace ACadSharp.Objects
 		/// <remarks>
 		/// Appears in DXF as 302 DXF: “LEADER“
 		/// </remarks>
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 		public class LeaderRoot : ICloneable
 		{
 			/// <summary>

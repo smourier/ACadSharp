@@ -1,11 +1,11 @@
-﻿using ACadSharp.Attributes;
-using ACadSharp.Entities;
-using ACadSharp.Tables;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using ACadSharp.Attributes;
+using ACadSharp.Entities;
+using ACadSharp.Tables;
 
 namespace ACadSharp
 {
@@ -61,9 +61,9 @@ namespace ACadSharp
 					isDimensionStyle = true;
 				}
 
-				if (t.Equals(typeof(CadObject)))
+				if (t == typeof(CadObject))
 				{
-					addClassProperties(map, t);
+					addClassProperties(map, typeof(CadObject));
 					break;
 				}
 				else if (subclass != null && subclass.IsEmpty)

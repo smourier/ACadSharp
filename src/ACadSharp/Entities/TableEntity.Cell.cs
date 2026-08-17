@@ -2,6 +2,7 @@
 using ACadSharp.Objects;
 using CSUtilities.Collections.Generic;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using static ACadSharp.Objects.TableStyle;
 
@@ -9,6 +10,7 @@ namespace ACadSharp.Entities;
 
 public partial class TableEntity
 {
+	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 	public class Cell
 	{
 		/// <summary>

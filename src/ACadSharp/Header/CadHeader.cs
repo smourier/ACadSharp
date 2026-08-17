@@ -7,11 +7,13 @@ using CSMath;
 using CSUtilities.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
 namespace ACadSharp.Header;
 
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 public class CadHeader
 {
 	/// <summary>

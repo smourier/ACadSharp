@@ -1,5 +1,6 @@
 ﻿using ACadSharp.Attributes;
 using ACadSharp.Tables;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ACadSharp.Objects;
 
@@ -12,6 +13,7 @@ public partial class TableStyle
 	/// A <see cref="CellStyle"/> defines visual and layout properties such as colors, margins, borders, and text alignment
 	/// for cells in a <see cref="TableStyle"/>. Default cell styles are provided for data, header, and title cells.
 	/// </remarks>
+	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 	public class CellStyle : ContentFormat
 	{
 		/// <summary>
