@@ -9,6 +9,7 @@ using ACadSharp.XData;
 using CSMath.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace ACadSharp;
@@ -16,6 +17,7 @@ namespace ACadSharp;
 /// <summary>
 /// Represents an element in a CadDocument.
 /// </summary>
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 public abstract class CadObject : IHandledCadObject
 {
 	/// <summary>
@@ -269,15 +271,15 @@ public abstract class CadObject : IHandledCadObject
 			doc.RegisterCollection(this.XDictionary);
 		}
 
-		if (this.ExtendedData.Any())
+		if (this._extendedData != null && this._extendedData.Any())
 		{
 			//Reset existing collection
-			var entries = this.ExtendedData.ToArray();
-			this.ExtendedData.Clear();
+			var entries = this._extendedData.ToArray();
+			this._extendedData.Clear();
 
 			foreach (var item in entries)
 			{
-				this.ExtendedData.Add(item.Key, item.Value);
+				this._extendedData.Add(item.Key, item.Value);
 			}
 		}
 	}
@@ -292,15 +294,15 @@ public abstract class CadObject : IHandledCadObject
 		this.Handle = 0;
 		this.Document = null;
 
-		if (this.ExtendedData.Any())
+		if (this._extendedData != null && this._extendedData.Any())
 		{
 			//Reset existing collection
-			var entries = this.ExtendedData.ToArray();
-			this.ExtendedData.Clear();
+			var entries = this._extendedData.ToArray();
+			this._extendedData.Clear();
 
 			foreach (var item in entries)
 			{
-				this.ExtendedData.Add(item.Key.Clone() as AppId, item.Value);
+				this._extendedData.Add(item.Key.Clone() as AppId, item.Value);
 			}
 		}
 
