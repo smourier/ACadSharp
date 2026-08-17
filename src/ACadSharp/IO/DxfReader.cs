@@ -135,6 +135,10 @@ namespace ACadSharp.IO
 
 			this._builder = new DxfDocumentBuilder(this._version, this._document, this.Configuration);
 			this._builder.OnNotification += this.onNotificationEvent;
+			if (this.onProgressEventEnabled())
+			{
+				this._builder.OnProgress += this.onProgressEvent;
+			}
 
 			while (this._reader.ValueAsString != DxfFileToken.EndOfFile)
 			{

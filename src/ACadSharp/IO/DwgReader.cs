@@ -601,6 +601,7 @@ public class DwgReader : CadReaderBase<DwgReaderConfiguration>
 	private void readObjects()
 	{
 		Dictionary<ulong, long> handles = this.readHandles();
+		this._builder.ExpectedObjectCount = handles.Count;
 		this.readClasses();
 
 		IDwgStreamReader sreader = null;
