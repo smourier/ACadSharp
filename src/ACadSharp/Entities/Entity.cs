@@ -46,7 +46,9 @@ public abstract class Entity : CadObject, IEntity
 	[DxfCodeValue(DxfReferenceType.Name, 8)]
 	public virtual Layer Layer
 	{
-		get { return this._layer; }
+		// created on first access, Layer.Default allocates a fresh Layer per call and readers
+		// overwrite it with the real layer right away.
+		get { return this._layer ??= Layer.Default; }
 		set
 		{
 			if (value == null)
@@ -62,7 +64,8 @@ public abstract class Entity : CadObject, IEntity
 	[DxfCodeValue(DxfReferenceType.Name, 6)]
 	public virtual LineType LineType
 	{
-		get { return this._lineType; }
+		// created on first access, for the same reason as Layer
+		get { return this._lineType ??= LineType.ByLayer; }
 		set
 		{
 			if (value == null)
@@ -113,9 +116,9 @@ public abstract class Entity : CadObject, IEntity
 
 	private BookColor _bookColor = null;
 
-	private Layer _layer = Layer.Default;
+	private Layer _layer;
 
-	private LineType _lineType = LineType.ByLayer;
+	private LineType _lineType;
 
 	private Material _material;
 

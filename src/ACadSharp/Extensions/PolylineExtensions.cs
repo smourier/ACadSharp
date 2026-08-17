@@ -99,15 +99,18 @@ namespace ACadSharp.Extensions
 				throw new ArgumentOutOfRangeException(nameof(precision), precision, "The arc precision must be equal or greater than two.");
 			}
 
-			var points = new List<T>();
-			for (int i = 0; i < polyline.Vertices.Count(); i++)
+			// the vertex collection is snapshot once instead of Count() and ElementAt() per iteration,
+			// and each bulge arc is tessellated and converted once. The produced points are identical.
+			IVertex[] vertices = polyline.Vertices.ToArray();
+			var points = new List<T>(vertices.Length);
+			for (int i = 0; i < vertices.Length; i++)
 			{
-				IVertex curr = polyline.Vertices.ElementAt(i);
-				IVertex next = polyline.Vertices.ElementAtOrDefault(i + 1);
+				IVertex curr = vertices[i];
+				IVertex next = i + 1 < vertices.Length ? vertices[i + 1] : null;
 
 				if (next == null && polyline.IsClosed)
 				{
-					next = polyline.Vertices.First();
+					next = vertices[0];
 				}
 				else if (next == null)
 				{
@@ -128,21 +131,25 @@ namespace ACadSharp.Extensions
 					XY p1 = curr.Location.Convert<XY>();
 					XY p2 = next.Location.Convert<XY>();
 
-					IEnumerable<T> lst = Arc.CreateFromBulge(p1, p2, curr.Bulge)
-						.PolygonalVertexes(precision)
-						.Select(p => p.Convert<T>());
+					List<XYZ> arc = Arc.CreateFromBulge(p1, p2, curr.Bulge).PolygonalVertexes(precision);
 
-					var f = lst.First().Round(8);
-					var l = lst.Last().Round(8);
+					var f = arc[0].Convert<T>().Round(8);
+					var l = arc[arc.Count - 1].Convert<T>().Round(8);
+					var c = curr.Location.Convert<T>().Round(8);
 
-					if (f.Equals(curr.Location.Convert<T>().Round(8)))
+					if (f.Equals(c))
 					{
-						points.AddRange(lst.Skip(1));
+						for (int k = 1; k < arc.Count; k++)
+						{
+							points.Add(arc[k].Convert<T>());
+						}
 					}
-					else if (l.Equals(curr.Location.Convert<T>().Round(8)))
+					else if (l.Equals(c))
 					{
-						lst = lst.Reverse();
-						points.AddRange(lst.Skip(1));
+						for (int k = arc.Count - 2; k >= 0; k--)
+						{
+							points.Add(arc[k].Convert<T>());
+						}
 					}
 				}
 			}
