@@ -1,4 +1,4 @@
-using ACadSharp.Attributes;
+﻿using ACadSharp.Attributes;
 using CSMath;
 using CSUtilities.Extensions;
 using System;
@@ -205,8 +205,11 @@ public class Spline : Entity
 	{
 		this.Normal = this.transformNormal(transform, this.Normal);
 
-		this.StartTangent = transform.ApplyTransform(this.StartTangent);
-		this.EndTangent = transform.ApplyTransform(this.EndTangent);
+		// the tangents are direction vectors, not points, so they are transformed without the
+		// translation. Otherwise they balloon and drag the derived control points off.
+		var origin = transform.ApplyTransform(XYZ.Zero);
+		this.StartTangent = transform.ApplyTransform(this.StartTangent) - origin;
+		this.EndTangent = transform.ApplyTransform(this.EndTangent) - origin;
 
 		for (int i = 0; i < this.ControlPoints.Count; i++)
 		{
@@ -287,7 +290,7 @@ public class Spline : Entity
 			throw new ArgumentOutOfRangeException(nameof(precision), precision, "The precision must be equal or greater than two.");
 		}
 
-		List<XYZ> vertexes = new List<XYZ>();
+		List<XYZ> vertexes = new List<XYZ>(precision + 1);
 
 		this.prepare(out XYZ[] controlPts, out double[] weights, out double[] knots);
 		this.getStartAndEndKnots(knots, out double uStart, out double uEnd);
@@ -381,6 +384,11 @@ public class Spline : Entity
 			|| this.KnotParametrization == KnotParametrization.Custom)
 		{
 			return false;
+		}
+
+		if (this.IsClosed || this.IsPeriodic)
+		{
+			return this.updateClosedFromFitPoints();
 		}
 
 		if (this.FitPoints.Count == 2)
@@ -496,6 +504,11 @@ public class Spline : Entity
 		for (int i = 0; i < ctrlPoints.Length; i++)
 		{
 			double nurb = computeNurb(knots, i, degree, u);
+			if (nurb == 0)
+			{
+				continue;
+			}
+
 			denominatorSum += nurb * weights[i];
 			vectorSum += weights[i] * nurb * ctrlPoints[i];
 		}
@@ -566,6 +579,164 @@ public class Spline : Entity
 		return controlPoints;
 	}
 
+	// Builds the control points of a closed fit point spline as a clamped B-spline interpolating
+	// the fit points with the chord parametrization. The closure is made smooth by solving the
+	// periodic C2 cubic system for the tangent at the seam, applied as both start and end tangent.
+	private bool updateClosedFromFitPoints()
+	{
+		var fit = this.FitPoints.ToList();
+
+		// a closed fit point set usually repeats the first point as the last, drop it with a tolerance.
+		// an exact compare misses a closing point differing only by round off.
+		if (fit.Count > 1 && (fit[0] - fit[fit.Count - 1]).GetLength() <= this.KnotTolerance)
+		{
+			fit.RemoveAt(fit.Count - 1);
+		}
+
+		int n = fit.Count;
+		if (n < 3)
+		{
+			return false;
+		}
+
+		// periodic C2 tangents: the closed cubic relates the tangent at each point to its neighbours
+		// through the chord intervals in a cyclic system. Only the tangent at the seam is needed.
+		var h = new double[n];
+		for (int i = 0; i < n; i++)
+		{
+			h[i] = (fit[(i + 1) % n] - fit[i]).GetLength();
+		}
+
+		var sub = new double[n];
+		var diagonal = new double[n];
+		var sup = new double[n];
+		var rhs = new XYZ[n];
+		for (int i = 0; i < n; i++)
+		{
+			double hPrev = h[(i - 1 + n) % n];
+			double hCurr = h[i];
+			sub[i] = hCurr;
+			diagonal[i] = 2.0 * (hPrev + hCurr);
+			sup[i] = hPrev;
+			rhs[i] = 3.0 * (hPrev * (fit[(i + 1) % n] - fit[i]) / hCurr + hCurr * (fit[i] - fit[(i - 1 + n) % n]) / hPrev);
+		}
+
+		XYZ seamTangent = solveCyclicTridiagonal(sub, diagonal, sup, rhs)[0];
+
+		// interpolate the closed point set as a clamped B-spline with the chord parametrization,
+		// using the seam tangent at both ends.
+		var closedPoints = new XYZ[n + 1];
+		for (int i = 0; i < n; i++)
+		{
+			closedPoints[i] = fit[i];
+		}
+		closedPoints[n] = fit[0];
+
+		double[] knotValues = generateKnotValues(this.KnotParametrization, closedPoints);
+		var knots = addSideKnots(this.Degree, knotValues).ToArray();
+		var controlPoints = computeControlPoints(this.Degree, knots, closedPoints, seamTangent, seamTangent);
+
+		this.Knots.Clear();
+		this.Knots.AddRange(knots);
+		this.ControlPoints.Clear();
+		this.ControlPoints.AddRange(controlPoints);
+		this.Weights = Enumerable.Repeat(1.0d, controlPoints.Length).ToList();
+		this.StartTangent = seamTangent;
+		this.EndTangent = seamTangent;
+
+		// the curve already closes, evaluate it as a plain clamped spline so the chord knots are used
+		// as is. The periodic path would regenerate uniform knots and discard them.
+		this._flags.RemoveFlag(SplineFlags.Closed);
+		this._flags.RemoveFlag(SplineFlags.Periodic);
+		this._flags1.RemoveFlag(SplineFlags1.Closed);
+
+		return true;
+	}
+
+	// Solves a cyclic tridiagonal system with the wrap corners sub[0] and sup[n-1], via
+	// Sherman-Morrison. The wrap perturbation is the same for every axis, so the correction is
+	// solved once as a scalar and applied to the vector solution.
+	private static XYZ[] solveCyclicTridiagonal(double[] sub, double[] diagonal, double[] sup, XYZ[] rhs)
+	{
+		int n = rhs.Length;
+		double cornerLower = sub[0];
+		double cornerUpper = sup[n - 1];
+		double gamma = -diagonal[0];
+
+		var modified = (double[])diagonal.Clone();
+		modified[0] = diagonal[0] - gamma;
+		modified[n - 1] = diagonal[n - 1] - cornerUpper * cornerLower / gamma;
+
+		var solved = solveTridiagonal(sub, modified, sup, rhs);
+
+		var unit = new double[n];
+		unit[0] = gamma;
+		unit[n - 1] = cornerLower;
+		var correction = solveTridiagonal(sub, modified, sup, unit);
+
+		double ratio = cornerUpper / gamma;
+		double denominator = 1.0 + correction[0] + ratio * correction[n - 1];
+		XYZ factor = (solved[0] + ratio * solved[n - 1]) / denominator;
+
+		var result = new XYZ[n];
+		for (int i = 0; i < n; i++)
+		{
+			result[i] = solved[i] - correction[i] * factor;
+		}
+
+		return result;
+	}
+
+	private static XYZ[] solveTridiagonal(double[] sub, double[] diagonal, double[] sup, XYZ[] rhs)
+	{
+		int n = rhs.Length;
+		var sweep = new double[n];
+		var values = new XYZ[n];
+
+		sweep[0] = sup[0] / diagonal[0];
+		values[0] = rhs[0] / diagonal[0];
+		for (int i = 1; i < n; i++)
+		{
+			double m = diagonal[i] - sub[i] * sweep[i - 1];
+			sweep[i] = sup[i] / m;
+			values[i] = (rhs[i] - sub[i] * values[i - 1]) / m;
+		}
+
+		var result = new XYZ[n];
+		result[n - 1] = values[n - 1];
+		for (int i = n - 2; i >= 0; i--)
+		{
+			result[i] = values[i] - sweep[i] * result[i + 1];
+		}
+
+		return result;
+	}
+
+	private static double[] solveTridiagonal(double[] sub, double[] diagonal, double[] sup, double[] rhs)
+	{
+		int n = rhs.Length;
+		var sweep = new double[n];
+		var values = new double[n];
+
+		sweep[0] = sup[0] / diagonal[0];
+		values[0] = rhs[0] / diagonal[0];
+		for (int i = 1; i < n; i++)
+		{
+			double m = diagonal[i] - sub[i] * sweep[i - 1];
+			sweep[i] = sup[i] / m;
+			values[i] = (rhs[i] - sub[i] * values[i - 1]) / m;
+		}
+
+		var result = new double[n];
+		result[n - 1] = values[n - 1];
+		for (int i = n - 2; i >= 0; i--)
+		{
+			result[i] = values[i] - sweep[i] * result[i + 1];
+		}
+
+		return result;
+	}
+
 	private static double computeNurb(double[] knots, int i, int p, double u)
 	{
 		if (p <= 0)
@@ -575,6 +746,13 @@ public class Spline : Entity
 				return 1;
 			}
 
+			return 0.0;
+		}
+
+		// N(i,p) has local support [knots[i], knots[i+p+1]), outside it the result is exactly zero.
+		// pruning here cuts the cost per evaluated point from O(n) to O(p) control points.
+		if (u < knots[i] || u >= knots[i + p + 1])
+		{
 			return 0.0;
 		}
 
@@ -736,15 +914,13 @@ public class Spline : Entity
 			uStart = knots[0];
 			uEnd = knots[knots.Length - 1];
 		}
-		else if (this.IsPeriodic)
-		{
-			uStart = knots[this.Degree];
-			uEnd = knots[knots.Length - this.Degree - 1];
-		}
 		else
 		{
-			uStart = knots[0];
-			uEnd = knots[knots.Length - 1];
+			// the valid domain is [knots[degree], knots[n]], which knots[0] matches only for an exactly
+			// clamped knot vector. Some files store float noise in the outer clamp knots, so knots[0]
+			// lands outside the domain, the curve evaluates to the origin and draws a spurious line.
+			uStart = knots[this.Degree];
+			uEnd = knots[knots.Length - 1 - this.Degree];
 		}
 	}
 

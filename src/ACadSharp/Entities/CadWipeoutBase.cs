@@ -214,8 +214,12 @@ namespace ACadSharp.Entities
 		public override void ApplyTransform(Transform transform)
 		{
 			this.InsertPoint = transform.ApplyTransform(this.InsertPoint);
-			this.UVector = transform.ApplyTransform(this.UVector);
-			this.VVector = transform.ApplyTransform(this.VVector);
+
+			// U and V are direction vectors, not points, so they take the linear part of the transform.
+			// Feeding them through as points adds the translation and balloons the axes.
+			var origin = transform.ApplyTransform(XYZ.Zero);
+			this.UVector = transform.ApplyTransform(this.UVector) - origin;
+			this.VVector = transform.ApplyTransform(this.VVector) - origin;
 		}
 
 		/// <inheritdoc/>

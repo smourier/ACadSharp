@@ -279,6 +279,9 @@ public class TextEntity : Entity, IText
 		}
 
 		this.InsertPoint = newInsert;
+		// the alignment point is the anchor for any non default justification, it must follow the
+		// same point transform as the insertion point.
+		this.AlignmentPoint = transform.ApplyTransform(this.AlignmentPoint);
 		this.Normal = newNormal;
 		this.Rotation = newRotation;
 		this.Height = newHeight;

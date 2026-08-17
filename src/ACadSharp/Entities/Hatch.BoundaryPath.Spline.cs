@@ -71,7 +71,20 @@ public partial class Hatch
 			/// <summary>
 			/// Gets a collection of weights derived from the Z-coordinates of the control points.
 			/// </summary>
-			public IEnumerable<double> Weights { get { return this.ControlPoints.Select(c => c.Z); } }
+			public IEnumerable<double> Weights
+			{
+				get
+				{
+					// a non rational boundary stores no per point weights, the control point Z is 0. NURBS
+					// evaluation needs unit weights, otherwise the denominator is 0 and samples collapse.
+					if (!this.IsRational || this.ControlPoints.All(c => c.Z == 0))
+					{
+						return Enumerable.Repeat(1.0, this.ControlPoints.Count);
+					}
+
+					return this.ControlPoints.Select(c => c.Z);
+				}
+			}
 
 			/// <summary>
 			/// Initializes a new instance of the Spline class.
@@ -192,7 +205,7 @@ public partial class Hatch
 				spline.EndTangent = this.EndTangent.Convert<XYZ>();
 
 				spline.ControlPoints.AddRange(this.ControlPoints.Select(cp => new XYZ(cp.X, cp.Y, 0)));
-				spline.Weights.AddRange(this.ControlPoints.Select(x => x.Z));
+				spline.Weights.AddRange(this.Weights);
 				spline.FitPoints.AddRange(this.FitPoints.Select(x => x.Convert<XYZ>()));
 				spline.Knots.AddRange(this.Knots);
 

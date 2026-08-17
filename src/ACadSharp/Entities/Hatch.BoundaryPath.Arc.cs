@@ -96,8 +96,12 @@ public partial class Hatch
 				double num2 = this.StartAngle;
 				double num3 = this.EndAngle;
 				bool flag = this.CounterClockWise;
+				// the radius and the angle basis are directions, not points. The full matrix would add the
+				// translation, so a translated insert blows the radius up. Subtract the transformed origin.
+				var origin = transform.ApplyTransform(XYZ.Zero);
+
 				this.Center = transform.ApplyTransform(this.Center.Convert<XYZ>()).Convert<XY>();
-				this.Radius = transform.ApplyTransform(new XYZ(this.Radius, 0.0, 0.0)).GetLength();
+				this.Radius = (transform.ApplyTransform(new XYZ(this.Radius, 0.0, 0.0)) - origin).GetLength();
 
 				if (!this.CounterClockWise)
 				{
@@ -108,10 +112,10 @@ public partial class Hatch
 				XYZ vstart = new XYZ(Math.Cos(StartAngle), Math.Sin(StartAngle), 0);
 				XYZ vend = new XYZ(Math.Cos(EndAngle), Math.Sin(EndAngle), 0);
 
-				vstart = transform.ApplyTransform(vstart);
+				vstart = transform.ApplyTransform(vstart) - origin;
 				this.StartAngle = Math.Atan2(vstart.Y, vstart.X);
 
-				vend = transform.ApplyTransform(vend);
+				vend = transform.ApplyTransform(vend) - origin;
 				this.EndAngle = Math.Atan2(vend.Y, vend.X);
 
 				if (!this.CounterClockWise)

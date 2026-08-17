@@ -87,8 +87,10 @@ public partial class Hatch
 				this.Vertices.Clear();
 				for (int i = 0; i < arr.Length; i++)
 				{
+					// the vertex stores the bulge in Z, not a coordinate, so only the planar position is
+					// transformed. Otherwise the bulge leaks into X and Y when the transform couples Z.
 					var bulge = arr[i].Z;
-					var v = transform.ApplyTransform(arr[i]);
+					var v = transform.ApplyTransform(new XYZ(arr[i].X, arr[i].Y, 0.0));
 					v.Z = bulge;
 
 					this.Vertices.Add(v);

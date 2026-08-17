@@ -113,8 +113,11 @@ public partial class Hatch
 			/// <inheritdoc/>
 			public override void ApplyTransform(Transform transform)
 			{
+				// the major axis endpoint is relative to the center, not an absolute point, so it must be
+				// transformed without the translation.
+				var origin = transform.ApplyTransform(XYZ.Zero);
 				this.Center = transform.ApplyTransform(this.Center.Convert<XYZ>()).Convert<XY>();
-				this.MajorAxisEndPoint = transform.ApplyTransform(this.MajorAxisEndPoint.Convert<XYZ>()).Convert<XY>();
+				this.MajorAxisEndPoint = (transform.ApplyTransform(this.MajorAxisEndPoint.Convert<XYZ>()) - origin).Convert<XY>();
 			}
 
 			/// <inheritdoc/>

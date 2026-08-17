@@ -36,8 +36,12 @@ namespace ACadSharp.Entities
 			public void ApplyTransform(Transform transform)
 			{
 				this.Position = transform.ApplyTransform(Position);
-				this.Direction = transform.ApplyTransform(Direction);
-				this.Miter = transform.ApplyTransform(Miter);
+
+				// Direction and Miter are direction vectors, not points, so they are transformed without the
+				// translation. Otherwise a vertex far from the origin balloons the miter and segment offsets.
+				var origin = transform.ApplyTransform(XYZ.Zero);
+				this.Direction = transform.ApplyTransform(Direction) - origin;
+				this.Miter = transform.ApplyTransform(Miter) - origin;
 
 				foreach (var segment in Segments)
 				{

@@ -329,10 +329,20 @@ public class Insert : Entity
 				case Arc arc:
 					arc.GetEndVertices(out XYZ start, out XYZ end);
 
+					XYZ tStart = transform.ApplyTransform(start);
+					XYZ tEnd = transform.ApplyTransform(end);
+
+					// a reflecting transform, negative determinant, reverses the sweep of the arc. The 3 point
+					// constructor always takes the CCW arc, so the endpoints must be swapped.
+					if (transform.Matrix.GetDeterminant() < 0)
+					{
+						(tStart, tEnd) = (tEnd, tStart);
+					}
+
 					Arc a = new Arc(
 							transform.ApplyTransform(arc.Center),
-							transform.ApplyTransform(start),
-							transform.ApplyTransform(end),
+							tStart,
+							tEnd,
 							arc.Normal);
 
 					a.MatchProperties(e);
@@ -381,12 +391,17 @@ public class Insert : Entity
 	public Transform GetTransform()
 	{
 		var world = Matrix4.GetArbitraryAxis(this.Normal);
-		XYZ basePoint = this.Block?.BlockEntity?.BasePoint ?? XYZ.Zero;
-		var translation = Transform.CreateTranslation(this.InsertPoint - basePoint);
+		var translation = Transform.CreateTranslation(this.InsertPoint);
 		var rotation = Transform.CreateRotation(XYZ.AxisZ, this.Rotation);
 		var scale = Transform.CreateScaling(new XYZ(this.XScale, this.YScale, this.ZScale));
 
-		return new Transform(world * translation.Matrix * rotation.Matrix * scale.Matrix);
+		// the base point of the block definition is the origin that lands on the insertion point, so
+		// block geometry is offset by -basePoint before scale and rotation. Without this a block whose
+		// geometry sits far from the origin scatters under rotated inserts.
+		var basePoint = this.Block?.BlockEntity?.BasePoint ?? XYZ.Zero;
+		var baseOffset = Transform.CreateTranslation(new XYZ(-basePoint.X, -basePoint.Y, -basePoint.Z));
+
+		return new Transform(world * translation.Matrix * rotation.Matrix * scale.Matrix * baseOffset.Matrix);
 	}
 
 	/// <summary>

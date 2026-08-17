@@ -1335,7 +1335,7 @@ namespace ACadSharp.IO.DWG
 		{
 			//Class ID BL 91
 			//It seems to be the same for all versions
-			int classId = this._mergedReaders.ReadBitLong(); ;
+			int classId = this._mergedReaders.ReadBitLong();
 
 			if (this._classes.TryGetValue((short)classId, out DxfClass dxfClass))
 			{

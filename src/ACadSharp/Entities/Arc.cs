@@ -230,18 +230,16 @@ public class Arc : Circle
 	/// <param name="end">End point of the arc segment</param>
 	public void GetEndVertices(out XYZ start, out XYZ end)
 	{
-		//Start vector If normal = Z
-		start = new XYZ(MathHelper.Cos(this.StartAngle), MathHelper.Sin(this.StartAngle), 0.0);
-		start = this.Center + this.Radius * start;
-
-		//End vector if normal = Z
-		end = new XYZ(MathHelper.Cos(this.EndAngle), MathHelper.Sin(this.EndAngle), 0.0);
-		end = this.Center + this.Radius * end;
-
 		var t = Matrix4.GetArbitraryAxis(this.Normal);
 
-		start = t * start;
-		end = t * end;
+		// the center is already in world coordinates, only the radius offset is oriented by the
+		// arbitrary axis frame. Transforming center + offset would also mirror the center about
+		// the origin, which for a -Z normal moves the endpoint far away.
+		var startOffset = this.Radius * new XYZ(MathHelper.Cos(this.StartAngle), MathHelper.Sin(this.StartAngle), 0.0);
+		start = this.Center + t * startOffset;
+
+		var endOffset = this.Radius * new XYZ(MathHelper.Cos(this.EndAngle), MathHelper.Sin(this.EndAngle), 0.0);
+		end = this.Center + t * endOffset;
 	}
 
 	/// <summary>

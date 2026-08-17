@@ -431,7 +431,7 @@ public class CadDocument : IHandledCadObject
 				this.Header.CurrentLayerName = this.Layers.TryAdd(layer).Name;
 				break;
 			case LineType lineType:
-				this.Header.CurrentLineTypeName = this.LineTypes.TryAdd(lineType).Name; ;
+				this.Header.CurrentLineTypeName = this.LineTypes.TryAdd(lineType).Name;
 				break;
 			case TextStyle textStyle:
 				this.Header.CurrentTextStyleName = this.TextStyles.TryAdd(textStyle).Name;

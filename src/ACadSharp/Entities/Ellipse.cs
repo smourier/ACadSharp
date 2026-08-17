@@ -135,10 +135,14 @@ public class Ellipse : Entity, ICurve
 		perp = perp.Normalize();
 		perp *= this.MajorAxisEndPoint.GetLength() * this.RadiusRatio;
 
+		// the major axis endpoint and the minor axis vector are relative to the center, not points,
+		// so they take the linear part of the transform only. The full transform would add the
+		// translation and corrupt the radius ratio and the recomputed normal.
+		XYZ origin = transform.ApplyTransform(XYZ.Zero);
 		this.Center = transform.ApplyTransform(this.Center);
-		this.MajorAxisEndPoint = transform.ApplyScale(this.MajorAxisEndPoint);
+		this.MajorAxisEndPoint = transform.ApplyTransform(this.MajorAxisEndPoint) - origin;
 
-		XYZ newPrep = transform.ApplyTransform(perp);
+		XYZ newPrep = transform.ApplyTransform(perp) - origin;
 		if (newPrep != XYZ.Zero && this.MajorAxisEndPoint != XYZ.Zero)
 		{
 			var ratio = newPrep.GetLength() / this.MajorAxisEndPoint.GetLength();
@@ -149,7 +153,9 @@ public class Ellipse : Entity, ICurve
 
 			this.RadiusRatio = ratio;
 
-			this.Normal = XYZ.Cross(newPrep, this.MajorAxisEndPoint).Normalize();
+			// normal is major cross minor, right handed. The reversed order flips it to -Z for an
+			// ordinary +Z ellipse, which then mirrors the center about the origin.
+			this.Normal = XYZ.Cross(this.MajorAxisEndPoint, newPrep).Normalize();
 		}
 		else
 		{
