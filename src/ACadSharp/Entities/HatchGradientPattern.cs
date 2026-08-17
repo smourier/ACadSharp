@@ -74,7 +74,9 @@ namespace ACadSharp.Entities
 		{
 			HatchGradientPattern clone = (HatchGradientPattern)this.MemberwiseClone();
 
-			clone.Colors.Clear();
+			// MemberwiseClone is shallow, so the clone still references the list of the source. Clearing
+			// it emptied the source too, then iterating the emptied list lost every gradient stop.
+			clone.Colors = new List<GradientColor>();
 			foreach (var item in this.Colors)
 			{
 				clone.Colors.Add(item.Clone());

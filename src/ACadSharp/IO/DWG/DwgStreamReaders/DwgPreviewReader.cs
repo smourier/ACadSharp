@@ -58,7 +58,14 @@ namespace ACadSharp.IO.DWG.DwgStreamReaders
 			}
 
 			byte[] header = null;
-			header = this._reader.ReadBytes((int)headerDataSize.Value);
+			if (headerDataSize != null)
+			{
+				header = this._reader.ReadBytes((int)headerDataSize.Value);
+			}
+			else
+			{
+				header = new byte[0];
+			}
 
 			byte[] body = null;
 			if (sizeImage.HasValue)
