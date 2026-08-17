@@ -25,13 +25,27 @@ public class ProgressEventArgs : EventArgs
 	public ReadStage Stage { get; }
 
 	/// <summary>
+	/// Gets the number of objects processed so far in the current stage.
+	/// </summary>
+	public int Done { get; }
+
+	/// <summary>
+	/// Gets the total number of objects expected in the current stage, or 0 when it is not known.
+	/// </summary>
+	public int Total { get; }
+
+	/// <summary>
 	/// Initializes a new instance of the <see cref="ProgressEventArgs"/> class.
 	/// </summary>
 	/// <param name="stage">The current stage of the read operation.</param>
 	/// <param name="current">The current CAD object data being processed.</param>
-	public ProgressEventArgs(ReadStage stage, CadObjectData current)
+	/// <param name="done">The number of objects processed so far in the current stage.</param>
+	/// <param name="total">The total number of objects expected in the current stage, or 0 when unknown.</param>
+	public ProgressEventArgs(ReadStage stage, CadObjectData current, int done = 0, int total = 0)
 	{
 		this.Stage = stage;
 		this.Current = current;
+		this.Done = done;
+		this.Total = total;
 	}
 }
