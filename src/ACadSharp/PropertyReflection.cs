@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 
 namespace ACadSharp
 {
-	internal class PropertyExpression<TClass, TAttribute>
+	internal class PropertyExpression<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TClass, TAttribute>
 		where TClass : class
 		where TAttribute : Attribute
 	{

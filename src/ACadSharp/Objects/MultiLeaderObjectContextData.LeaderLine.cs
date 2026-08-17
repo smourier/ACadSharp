@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using ACadSharp.Attributes;
 using ACadSharp.Tables;
 using CSMath;
@@ -14,6 +15,7 @@ namespace ACadSharp.Objects
 		/// <remarks>
 		/// Appears as 304	DXF: “LEADER_LINE“
 		/// </remarks>
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 		public class LeaderLine : ICloneable
 		{
 			/// <summary>

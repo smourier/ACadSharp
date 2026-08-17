@@ -1,6 +1,6 @@
-﻿using CSUtilities;
-using System;
+﻿using System;
 using System.IO;
+using CSUtilities;
 
 namespace ACadSharp.Tests
 {
@@ -30,10 +30,10 @@ namespace ACadSharp.Tests
 
 		static TestVariables()
 		{
-			EnvironmentVars.SetIfNull("SAMPLES_FOLDER", "../../../../../samples/");
-			EnvironmentVars.SetIfNull("OUTPUT_SAMPLES_FOLDER", "../../../../../samples/out");
-			EnvironmentVars.SetIfNull("OUTPUT_SINGLE_CASES_FOLDER", "../../../../../samples/out/single_cases");
-			EnvironmentVars.SetIfNull("OUTPUT_SVG", "../../../../../samples/out/svg");
+			EnvironmentVars.SetIfNull("SAMPLES_FOLDER", "../../../../../../samples/");
+			EnvironmentVars.SetIfNull("OUTPUT_SAMPLES_FOLDER", "../../../../../../samples/out");
+			EnvironmentVars.SetIfNull("OUTPUT_SINGLE_CASES_FOLDER", "../../../../../../samples/out/single_cases");
+			EnvironmentVars.SetIfNull("OUTPUT_SVG", "../../../../../../samples/out/svg");
 			EnvironmentVars.SetIfNull("LOCAL_ENV", "true");
 			EnvironmentVars.SetIfNull("DELTA", "0.00001");
 			EnvironmentVars.SetIfNull("DECIMAL_PRECISION", "5");

@@ -1,9 +1,8 @@
-﻿using ACadSharp.Attributes;
-using CSUtilities.Extensions;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using ACadSharp.Attributes;
 
 namespace ACadSharp.Tables.Collections
 {

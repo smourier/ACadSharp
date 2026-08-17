@@ -1,10 +1,11 @@
-﻿using ACadSharp.Entities;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using ACadSharp.Entities;
 using ACadSharp.Entities.AecObjects;
 using ACadSharp.Entities.Mechanical;
 using ACadSharp.Objects;
 using CSMath;
-using System;
-using System.Linq;
 
 namespace ACadSharp.IO.DXF;
 
@@ -218,7 +219,7 @@ internal abstract partial class DxfSectionWriterBase
 		}
 	}
 
-	private void writeCadImage<T>(T image)
+	private void writeCadImage<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(T image)
 		where T : CadWipeoutBase
 	{
 		DxfClassMap map = DxfClassMap.Create<T>();
@@ -1046,7 +1047,7 @@ internal abstract partial class DxfSectionWriterBase
 		this._writer.Write(301, "}");       //	CONTEXT_DATA
 	}
 
-	private void writePdfUnderlay<T, R>(T underlay)
+	private void writePdfUnderlay<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T, R>(T underlay)
 		where T : UnderlayEntity<R>
 		where R : UnderlayDefinition
 	{

@@ -1,12 +1,12 @@
-﻿using ACadSharp.Entities;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using ACadSharp.Entities;
 using ACadSharp.Objects;
 using ACadSharp.Objects.Collections;
 using ACadSharp.Tables;
 using ACadSharp.Tables.Collections;
 using ACadSharp.Tests.TestModels;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -18,7 +18,7 @@ namespace ACadSharp.Tests.Common
 
 		public ITestOutputHelper Output { get; set; }
 
-		private const string _folder = "../../../../ACadSharp.Tests/Data/";
+		private const string _folder = "../../../../../ACadSharp.Tests/Data/";
 
 		private CadDocument _document;
 

@@ -1,9 +1,11 @@
-﻿using ACadSharp.Attributes;
-using System;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using ACadSharp.Attributes;
 
 namespace ACadSharp.Tables
 {
 	[DxfSubClass(DxfSubclassMarker.TableRecord, true)]
+	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicConstructorsWithInherited)]
 	public abstract class TableEntry : CadObject, INamedCadObject
 	{
 		/// <summary>
