@@ -105,7 +105,13 @@ public abstract class Entity : CadObject, IEntity
 	/// <summary>
 	/// Gets the list of proxy geometries for this entity.
 	/// </summary>
-	public List<IProxyGeometry> ProxyGeometries { get; } = new();
+	/// <remarks>
+	/// Created on first access, most entities carry no proxy graphics.
+	/// </remarks>
+	public List<IProxyGeometry> ProxyGeometries
+	{
+		get { return this._proxyGeometries ??= new(); }
+	}
 
 	/// <inheritdoc/>
 	public override string SubclassMarker => DxfSubclassMarker.Entity;
@@ -121,6 +127,8 @@ public abstract class Entity : CadObject, IEntity
 	private LineType _lineType;
 
 	private Material _material;
+
+	private List<IProxyGeometry> _proxyGeometries;
 
 	/// <inheritdoc/>
 	public Entity() : base() { }
