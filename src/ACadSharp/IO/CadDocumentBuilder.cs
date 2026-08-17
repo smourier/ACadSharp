@@ -1,11 +1,12 @@
-﻿using ACadSharp.Entities;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using ACadSharp.Entities;
 using ACadSharp.IO.Templates;
 using ACadSharp.Objects;
 using ACadSharp.Tables;
 using ACadSharp.Tables.Collections;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace ACadSharp.IO;
 
@@ -14,6 +15,15 @@ internal abstract class CadDocumentBuilder
 	public event NotificationEventHandler OnNotification;
 
 	public event ProgressEventHandler OnProgress;
+
+	/// <summary>
+	/// Total number of objects the reader expects to add (e.g. the DWG handle map count), used to
+	/// report read-progress totals; 0 when not known (e.g. DXF).
+	/// </summary>
+	public int ExpectedObjectCount { get; set; }
+
+	private int _readCount;
+	private int _buildCount;
 
 	public AppIdsTable AppIds { get; set; } = new AppIdsTable();
 
@@ -152,7 +162,20 @@ internal abstract class CadDocumentBuilder
 			return;
 		}
 
-		this.OnProgress?.Invoke(this, new ProgressEventArgs(stage, template.GetObjectData()));
+		int done;
+		int total;
+		if (stage == ReadStage.Read)
+		{
+			done = ++this._readCount;
+			total = this.ExpectedObjectCount;
+		}
+		else
+		{
+			done = ++this._buildCount;
+			total = this.templatesMap.Count;
+		}
+
+		this.OnProgress?.Invoke(this, new ProgressEventArgs(stage, template.GetObjectData(), done, total));
 	}
 
 	public void RegisterTables()
@@ -314,13 +337,13 @@ internal abstract class CadDocumentBuilder
 		this.unassignedObjects.Clear();
 	}
 
-	protected void registerTable<T, R>(T table)
+	protected void registerTable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructorsWithInherited)] T, R>(T table)
 		where T : Table<R>
 		where R : TableEntry
 	{
 		if (table == null)
 		{
-			this.DocumentToBuild.RegisterCollection((T)Activator.CreateInstance(typeof(T)));
+			this.DocumentToBuild.RegisterCollection(Activator.CreateInstance<T>());
 		}
 		else
 		{
