@@ -155,6 +155,10 @@ public class DxfReader : CadReaderBase<DxfReaderConfiguration>
 
 		this._builder = new DxfDocumentBuilder(this._version, this._document, this.Configuration);
 		this._builder.OnNotification += this.onNotificationEvent;
+		if (this.onProgressEventEnabled())
+		{
+			this._builder.OnProgress += this.onProgressEvent;
+		}
 
 		//Only created if a TABLE is found outside of the TABLES section (non-standard dxf)
 		DxfTablesSectionReader orphanTablesReader = null;
