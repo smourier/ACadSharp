@@ -9,6 +9,7 @@ using ACadSharp.XData;
 using CSMath.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace ACadSharp;
@@ -16,6 +17,7 @@ namespace ACadSharp;
 /// <summary>
 /// Represents an element in a CadDocument.
 /// </summary>
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 public abstract class CadObject : IHandledCadObject
 {
 	/// <summary>
@@ -23,10 +25,13 @@ public abstract class CadObject : IHandledCadObject
 	/// </summary>
 	public CadDocument Document { get; private set; }
 
-	/// <summary>
-	/// Extended data attached to this object.
-	/// </summary>
-	public ExtendedDataDictionary ExtendedData { get; private set; }
+	/// <remarks>
+	/// Created on first access, most objects carry no extended data.
+	/// </remarks>
+	public ExtendedDataDictionary ExtendedData
+	{
+		get { return this._extendedData ??= new ExtendedDataDictionary(this); }
+	}
 
 	/// <inheritdoc/>
 	/// <remarks>
@@ -63,7 +68,7 @@ public abstract class CadObject : IHandledCadObject
 	{
 		get
 		{
-			return this._reactors;
+			return this._reactors ?? Enumerable.Empty<CadObject>();
 		}
 	}
 
@@ -94,7 +99,10 @@ public abstract class CadObject : IHandledCadObject
 		}
 	}
 
-	private List<CadObject> _reactors = new List<CadObject>();
+	private ExtendedDataDictionary _extendedData;
+
+	// created on first AddReactor, most objects have none.
+	private List<CadObject> _reactors;
 
 	private CadDictionary _xdictionary = null;
 
@@ -103,7 +111,6 @@ public abstract class CadObject : IHandledCadObject
 	/// </summary>
 	public CadObject()
 	{
-		this.ExtendedData = new ExtendedDataDictionary(this);
 	}
 
 	/// <summary>
@@ -115,7 +122,7 @@ public abstract class CadObject : IHandledCadObject
 	/// <param name="reactor"></param>
 	public void AddReactor(CadObject reactor)
 	{
-		this._reactors.Add(reactor);
+		(this._reactors ??= new List<CadObject>()).Add(reactor);
 	}
 
 	/// <summary>
@@ -123,6 +130,11 @@ public abstract class CadObject : IHandledCadObject
 	/// </summary>
 	public void CleanReactors()
 	{
+		if (this._reactors == null)
+		{
+			return;
+		}
+
 		var reactors = this._reactors.ToList();
 		foreach (var reactor in reactors)
 		{
@@ -149,9 +161,10 @@ public abstract class CadObject : IHandledCadObject
 		clone.Document = null;
 		clone.Owner = null;
 
-		//Collections
-		clone._reactors = new List<CadObject>();
-		clone.ExtendedData = new ExtendedDataDictionary(clone);
+		//Collections: MemberwiseClone copied the references of the source, whose owner is the
+		//source object. The instances of the clone are created on first access.
+		clone._reactors = null;
+		clone._extendedData = null;
 		clone.XDictionary = this._xdictionary?.CloneTyped();
 
 		return clone;
@@ -213,7 +226,7 @@ public abstract class CadObject : IHandledCadObject
 	/// <returns></returns>
 	public bool RemoveReactor(CadObject reactor)
 	{
-		return this._reactors.Remove(reactor);
+		return this._reactors != null && this._reactors.Remove(reactor);
 	}
 
 	/// <inheritdoc/>
@@ -231,15 +244,15 @@ public abstract class CadObject : IHandledCadObject
 			doc.RegisterCollection(this.XDictionary);
 		}
 
-		if (this.ExtendedData.Any())
+		if (this._extendedData != null && this._extendedData.Any())
 		{
 			//Reset existing collection
-			var entries = this.ExtendedData.ToArray();
-			this.ExtendedData.Clear();
+			var entries = this._extendedData.ToArray();
+			this._extendedData.Clear();
 
 			foreach (var item in entries)
 			{
-				this.ExtendedData.Add(item.Key, item.Value);
+				this._extendedData.Add(item.Key, item.Value);
 			}
 		}
 	}
@@ -254,19 +267,19 @@ public abstract class CadObject : IHandledCadObject
 		this.Handle = 0;
 		this.Document = null;
 
-		if (this.ExtendedData.Any())
+		if (this._extendedData != null && this._extendedData.Any())
 		{
 			//Reset existing collection
-			var entries = this.ExtendedData.ToArray();
-			this.ExtendedData.Clear();
+			var entries = this._extendedData.ToArray();
+			this._extendedData.Clear();
 
 			foreach (var item in entries)
 			{
-				this.ExtendedData.Add(item.Key.Clone() as AppId, item.Value);
+				this._extendedData.Add(item.Key.Clone() as AppId, item.Value);
 			}
 		}
 
-		this._reactors.Clear();
+		this._reactors?.Clear();
 	}
 
 	protected T updateCollectionEntry<T>(T entry, Action<T> assignValue, ObjectDictionaryCollection<T> collection)
