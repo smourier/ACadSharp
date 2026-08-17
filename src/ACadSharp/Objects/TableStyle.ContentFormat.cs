@@ -1,4 +1,5 @@
-﻿using ACadSharp.Attributes;
+﻿using System.Diagnostics.CodeAnalysis;
+using ACadSharp.Attributes;
 using ACadSharp.Tables;
 
 namespace ACadSharp.Objects;
@@ -8,6 +9,7 @@ public partial class TableStyle
 	/// <summary>
 	/// Represents the content format settings for a table cell in AutoCAD. This class encapsulates various properties that define how the content of a cell is formatted, including alignment, color, rotation, scale, text style, and value formatting.
 	/// </summary>
+	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 	public class ContentFormat
 	{
 		/// <summary>

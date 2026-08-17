@@ -1,12 +1,14 @@
-﻿using ACadSharp.Attributes;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using ACadSharp.Attributes;
 using static ACadSharp.Objects.TableStyle;
 
 namespace ACadSharp.Entities;
 
 public partial class TableEntity
 {
+	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 	public partial class Cell
 	{
 		/// <summary>

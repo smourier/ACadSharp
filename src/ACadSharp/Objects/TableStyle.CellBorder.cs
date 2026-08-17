@@ -1,4 +1,5 @@
-﻿using ACadSharp.Attributes;
+﻿using System.Diagnostics.CodeAnalysis;
+using ACadSharp.Attributes;
 
 namespace ACadSharp.Objects;
 
@@ -10,6 +11,7 @@ public partial class TableStyle
 	/// <remarks>Use this class to configure the visual and printing characteristics of cell borders in a drawing or
 	/// table. The properties allow customization of color, line weight, border type, and visibility. Changes to these
 	/// settings affect how borders are displayed in the editor and when plotted or printed.</remarks>
+	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 	public class CellBorder
 	{
 		/// <summary>

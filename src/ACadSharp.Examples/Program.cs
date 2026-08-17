@@ -1,14 +1,14 @@
-﻿using ACadSharp.IO;
+﻿using System;
+using System.Linq;
+using ACadSharp.IO;
 using ACadSharp.Tables;
 using ACadSharp.Tables.Collections;
-using System;
-using System.Linq;
 
 namespace ACadSharp.Examples
 {
 	class Program
 	{
-		const string _file = "../../../../../samples/sample_AC1032.dwg";
+		const string _file = "sample_AC1032.dwg";
 
 		static void Main(string[] args)
 		{
