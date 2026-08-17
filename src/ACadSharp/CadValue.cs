@@ -2,12 +2,14 @@
 using CSMath;
 using CSMath.Extensions;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ACadSharp;
 
 /// <summary>
 /// Represents a value entry used in CAD objects.
 /// </summary>
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 public class CadValue
 {
 	/// <summary>

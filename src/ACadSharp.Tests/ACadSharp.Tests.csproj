@@ -1,17 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net9.0;net48</TargetFrameworks>
+		<TargetFrameworks>net10.0</TargetFrameworks>
 
-		<!-- Enable the MSTest runner, this is an opt-in feature -->
 		<EnableMSTestRunner>true</EnableMSTestRunner>
-		<!-- We need to produce an executable and not a DLL -->
-		<OutputType Condition="'$(TargetFramework)' == 'net9.0'">Exe"</OutputType>
 
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
 		<SignAssembly>True</SignAssembly>
 		<AssemblyOriginatorKeyFile>../ACadSharp.snk</AssemblyOriginatorKeyFile>
+		<Platforms>x64</Platforms>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -27,8 +25,8 @@
 		<PackageReference Include="xunit" Version="2.9.3" />
 		<PackageReference Include="xunit.extensibility.core" Version="2.*" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="3.0.2">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
 

@@ -1,7 +1,8 @@
-﻿using ACadSharp.Attributes;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using ACadSharp.Attributes;
 
 namespace ACadSharp
 {
@@ -17,7 +18,7 @@ namespace ACadSharp
 		/// </summary>
 		public Dictionary<int, DxfProperty> DxfProperties { get; } = new Dictionary<int, DxfProperty>();
 
-		protected static void addClassProperties(DxfMapBase map, Type type, CadObject obj = null)
+		protected static void addClassProperties(DxfMapBase map, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type type, CadObject obj = null)
 		{
 			foreach (var item in cadObjectMapDxf(type))
 			{
@@ -29,7 +30,8 @@ namespace ACadSharp
 			}
 		}
 
-		protected static IEnumerable<KeyValuePair<int, DxfProperty>> cadObjectMapDxf(Type type)
+		protected static IEnumerable<KeyValuePair<int, DxfProperty>> cadObjectMapDxf(
+			[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type type)
 		{
 			foreach (PropertyInfo p in type.GetProperties(BindingFlags.Public
 														| BindingFlags.Instance
