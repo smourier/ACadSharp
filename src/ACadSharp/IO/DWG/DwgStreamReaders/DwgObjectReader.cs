@@ -3746,7 +3746,9 @@ namespace ACadSharp.IO.DWG
 					//Background color CMC 63
 					mtext.BackgroundColor = this._mergedReaders.ReadCmColor();
 					//Background transparency BL 441
-					mtext.BackgroundTransparency = new Transparency((short)this._objectReader.ReadBitLong());
+					//the field is a 32 bit transparency value, decode it like every other transparency read,
+					//casting the raw value to a short fed the 0 to 90 range check an encoded value and threw.
+					mtext.BackgroundTransparency = Transparency.FromAlphaValue(this._objectReader.ReadBitLong());
 				}
 			}
 
