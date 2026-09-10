@@ -45,7 +45,8 @@ public static class CadReaderFactory
 	/// ".dwg" files,  <see cref="CadFileFormat.DXF"/> for ".dxf" files, or <see cref="CadFileFormat.Unknown"/> if the extension is not recognized.</returns>
 	public static CadFileFormat GetFileFormat(string filename)
 	{
-		switch (Path.GetExtension(filename))
+		// a file extension is not case sensitive, an upper case .DWG or .DXF is the same format.
+		switch (Path.GetExtension(filename)?.ToLowerInvariant())
 		{
 			case ".dwg":
 				return CadFileFormat.DWG;
