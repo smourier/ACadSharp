@@ -10,6 +10,7 @@ using CSUtilities.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ACadSharp.IO.DXF.DxfStreamReader;
 
@@ -242,7 +243,7 @@ internal class DxfTablesSectionReader : DxfSectionReaderBase
 		}
 	}
 
-	private ICadTableEntryTemplate readTableEntry<T>(CadTableEntryTemplate<T> template, ReadEntryDelegate<T> readEntry)
+	private ICadTableEntryTemplate readTableEntry<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(CadTableEntryTemplate<T> template, ReadEntryDelegate<T> readEntry)
 		where T : TableEntry
 	{
 		DxfMap map = DxfMap.Create<T>();
