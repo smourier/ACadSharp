@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using static ACadSharp.IO.Templates.CadEvaluationGraphTemplate;
 using static ACadSharp.IO.Templates.CadTableEntityTemplate;
 using static ACadSharp.IO.Templates.CadTableStyleTemplate;
@@ -57,7 +58,7 @@ internal class DxfObjectsSectionReader : DxfSectionReaderBase
 		}
 	}
 
-	protected CadTemplate readObjectCodes<T>(CadTemplate template, ReadObjectDelegate<T> readObject)
+	protected CadTemplate readObjectCodes<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(CadTemplate template, ReadObjectDelegate<T> readObject)
 		where T : CadObject
 	{
 		this._reader.ReadNext();

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using ACadSharp.Attributes;
@@ -24,14 +25,14 @@ namespace ACadSharp
 		/// <remarks>
 		/// This method does not work with the entities <see cref="AttributeEntity"/> and <see cref="AttributeDefinition"/>
 		/// </remarks>
-		public static DxfMap Create<T>()
+		public static DxfMap Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>()
 			where T : CadObject
 		{
 			return DxfMap.Create(typeof(T));
 		}
 
 		//Useful only for none cad objects
-		internal static DxfMap Create(Type type, string name = null)
+		internal static DxfMap Create([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type type, string name = null)
 		{
 			if (tryGetFromCache(type, out var map))
 			{

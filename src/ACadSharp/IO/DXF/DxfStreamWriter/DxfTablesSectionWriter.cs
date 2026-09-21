@@ -2,6 +2,7 @@
 using ACadSharp.Tables.Collections;
 using CSMath;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace ACadSharp.IO.DXF.DxfStreamWriter;
@@ -134,7 +135,7 @@ internal class DxfTablesSectionWriter : DxfSectionWriterBase
 		this._writer.Write(372, style.ExtensionLineWeight);
 	}
 
-	private void writeEntry<T>(T entry, bool writeFlags = true)
+	private void writeEntry<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(T entry, bool writeFlags = true)
 		where T : TableEntry
 	{
 		DxfMap map = DxfMap.Create<T>();
@@ -264,7 +265,7 @@ internal class DxfTablesSectionWriter : DxfSectionWriterBase
 		}
 	}
 
-	private void writeTable<T>(Table<T> table, string subclass = null, bool writeFlags = true)
+	private void writeTable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(Table<T> table, string subclass = null, bool writeFlags = true)
 							where T : TableEntry
 	{
 		this._writer.Write(DxfCode.Start, DxfFileToken.TableEntry);
