@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using ACadSharp.Attributes;
 
 namespace ACadSharp.Tables.Collections;
 
 [DxfSubClass(DxfSubclassMarker.Table)]
-public abstract class Table<T> : CadObject, ITable, ICadCollection<T>, IObservableCadCollection<T>
+public abstract class Table<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T> : CadObject, ITable, ICadCollection<T>, IObservableCadCollection<T>
 	where T : TableEntry
 {
 	public event EventHandler<CollectionChangedEventArgs> OnAdd;

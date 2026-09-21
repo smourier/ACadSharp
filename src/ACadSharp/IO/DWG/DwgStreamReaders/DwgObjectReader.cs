@@ -15,6 +15,7 @@ using CSMath;
 using CSUtilities.Converters;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -1768,14 +1769,14 @@ namespace ACadSharp.IO.DWG
 			return template;
 		}
 
-		private CadTemplate readDocumentTable<T>(Table<T> table)
+		private CadTemplate readDocumentTable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Table<T> table)
 			where T : TableEntry
 		{
 			var template = new CadTableTemplate<T>(table);
 			return this.readDocumentTable(template);
 		}
 
-		private CadTemplate readDocumentTable<T>(CadTableTemplate<T> template)
+		private CadTemplate readDocumentTable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(CadTableTemplate<T> template)
 			where T : TableEntry
 		{
 			this.readCommonNonEntityData(template);
