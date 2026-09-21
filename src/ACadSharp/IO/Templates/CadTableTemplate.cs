@@ -2,10 +2,11 @@
 using ACadSharp.Tables.Collections;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ACadSharp.IO.Templates
 {
-	internal class CadTableTemplate<T> : CadTemplate<Table<T>>, ICadTableTemplate
+	internal class CadTableTemplate<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T> : CadTemplate<Table<T>>, ICadTableTemplate
 		where T : TableEntry
 	{
 		public HashSet<ulong> EntryHandles { get; } = new();
