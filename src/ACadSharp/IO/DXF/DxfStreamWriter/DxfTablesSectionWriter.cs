@@ -4,6 +4,7 @@ using ACadSharp.Tables.Collections;
 using CSMath;
 using System;
 using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ACadSharp.IO.DXF
 {
@@ -27,7 +28,7 @@ namespace ACadSharp.IO.DXF
 			this.writeTable(this._document.BlockRecords, writeFlags: false);
 		}
 
-		private void writeTable<T>(Table<T> table, string subclass = null, bool writeFlags = true)
+		private void writeTable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(Table<T> table, string subclass = null, bool writeFlags = true)
 			where T : TableEntry
 		{
 			this._writer.Write(DxfCode.Start, DxfFileToken.TableEntry);
@@ -58,7 +59,7 @@ namespace ACadSharp.IO.DXF
 			this._writer.Write(DxfCode.Start, DxfFileToken.EndTable);
 		}
 
-		private void writeEntry<T>(T entry, bool writeFlags = true)
+		private void writeEntry<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(T entry, bool writeFlags = true)
 			where T : TableEntry
 		{
 			DxfMap map = DxfMap.Create<T>();

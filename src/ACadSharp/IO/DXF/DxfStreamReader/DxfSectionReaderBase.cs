@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using static ACadSharp.IO.Templates.CadMLeaderAnnotContextTemplate;
 using static ACadSharp.IO.Templates.CadTableEntityTemplate;
 
@@ -267,7 +268,7 @@ internal abstract class DxfSectionReaderBase
 		}
 	}
 
-	protected CadEntityTemplate readEntityCodes<T>(CadEntityTemplate template, ReadEntityDelegate<T> readEntity)
+	protected CadEntityTemplate readEntityCodes<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(CadEntityTemplate template, ReadEntityDelegate<T> readEntity)
 		where T : Entity
 	{
 		this._reader.ReadNext();
