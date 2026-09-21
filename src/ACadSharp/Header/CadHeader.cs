@@ -3309,6 +3309,11 @@ namespace ACadSharp.Header
 		/// </summary>
 		/// <param name="systemvar">name of the system var</param>
 		/// <param name="values">parameters for the constructor of the value</param>
+		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(XYZ))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(XY))]
+		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(Color))]
+		[UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "The header value types built through a constructor are XYZ, XY and Color, kept by DynamicDependency.")]
+		[UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "The header value types built through a constructor are XYZ, XY and Color, kept by DynamicDependency.")]
 		public void SetValue(string systemvar, params object[] values)
 		{
 			PropertyExpression<CadHeader, CadSystemVariableAttribute>.Prop prop = _propertyCache.GetProperty(systemvar);
