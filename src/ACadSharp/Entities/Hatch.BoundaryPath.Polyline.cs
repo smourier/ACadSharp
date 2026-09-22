@@ -139,7 +139,14 @@ public partial class Hatch
 			/// <inheritdoc/>
 			public override BoundingBox GetBoundingBox()
 			{
-				return BoundingBox.FromPoints(this.Vertices);
+				// the Z of a vertex is its bulge, and a bulged segment swings out of the box of its vertices,
+				// a circular boundary stored as two vertices with a bulge of 1 would only span its diameter.
+				if (this.HasBulge)
+				{
+					return this.ToEntity().GetBoundingBox();
+				}
+
+				return BoundingBox.FromPoints(this.Vertices.Select(v => new XYZ(v.X, v.Y, 0.0)));
 			}
 
 			/// <inheritdoc/>
