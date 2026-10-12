@@ -28,7 +28,7 @@ public class DwgReader : CadReaderBase<DwgReaderConfiguration>
 	/// </summary>
 	/// <param name="filename">The filename of the file to open.</param>
 	/// <param name="notification">Notification handler, sends any message or notification about the reading process.</param>
-	public DwgReader(string filename, NotificationEventHandler notification = null) : base(filename, notification) { }
+	public DwgReader(string filename, NotificationEventHandler notification = null) : base(readFile(filename), notification) { }
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="DwgReader" /> class.
@@ -36,6 +36,24 @@ public class DwgReader : CadReaderBase<DwgReaderConfiguration>
 	/// <param name="stream">The stream to read from.</param>
 	/// <param name="notification">Notification handler, sends any message or notification about the reading process.</param>
 	public DwgReader(Stream stream, NotificationEventHandler notification = null) : base(stream, notification) { }
+
+	// the reader seeks to every page of the file and decompresses it a byte at a time, so a file is read into memory once,
+	// with the sharing CadReaderBase opens it with, and closed. one too large for an array is read from the disk.
+	private static Stream readFile(string filename)
+	{
+		var file = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+		if (file.Length > Array.MaxLength)
+		{
+			return file;
+		}
+
+		using (file)
+		{
+			var bytes = new byte[file.Length];
+			file.ReadExactly(bytes);
+			return new MemoryStream(bytes, 0, bytes.Length, false, true);
+		}
+	}
 
 	/// <summary>
 	/// Read a dwg document in a stream.
