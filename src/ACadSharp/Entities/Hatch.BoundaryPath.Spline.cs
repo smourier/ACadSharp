@@ -197,7 +197,7 @@ public partial class Hatch
 			public override Entity ToEntity()
 			{
 				Entities.Spline spline = new();
-				spline.IsClosed = true;
+				spline.IsClosed = this.IsPeriodic;
 				spline.Degree = this.Degree;
 				spline.Flags = this.IsPeriodic ? spline.Flags |= (SplineFlags.Periodic) : spline.Flags;
 				spline.Flags = this.IsRational ? spline.Flags |= (SplineFlags.Rational) : spline.Flags;
