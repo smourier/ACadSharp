@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 
 namespace ACadSharp;
 
@@ -106,11 +107,23 @@ public abstract class CadObject : IHandledCadObject
 
 	private CadDictionary _xdictionary = null;
 
+	// the identity hash is a runtime slow path on its first use per object, and reading a drawing hashes every object
+	// into several sets. objects compare by reference, so any per instance number is a valid hash.
+	private static int _nextHashCode;
+
+	private int _hashCode = Interlocked.Increment(ref _nextHashCode);
+
 	/// <summary>
 	/// Default constructor.
 	/// </summary>
 	public CadObject()
 	{
+	}
+
+	/// <inheritdoc/>
+	public override int GetHashCode()
+	{
+		return this._hashCode;
 	}
 
 	/// <summary>
@@ -156,6 +169,7 @@ public abstract class CadObject : IHandledCadObject
 	{
 		CadObject clone = (CadObject)this.MemberwiseClone();
 
+		clone._hashCode = Interlocked.Increment(ref _nextHashCode);
 		clone.Handle = 0;
 
 		clone.Document = null;
