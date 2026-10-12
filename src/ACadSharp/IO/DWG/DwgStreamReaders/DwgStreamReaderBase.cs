@@ -4,8 +4,10 @@ using CSUtilities.Converters;
 using CSUtilities.IO;
 using CSUtilities.Text;
 using System;
+using System.Buffers.Binary;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace ACadSharp.IO.DWG
@@ -464,7 +466,7 @@ namespace ACadSharp.IO.DWG
 			{
 				case 0:
 					//00 : A short (2 bytes) follows, little-endian order (LSB first)
-					value = this.ReadShort<LittleEndianConverter>();
+					value = this.readLittleEndian<short>();
 					break;
 				case 1:
 					//01 : An unsigned char (1 byte) follows
@@ -504,7 +506,7 @@ namespace ACadSharp.IO.DWG
 			{
 				case 0:
 					//00 : A long (4 bytes) follows, little-endian order (LSB first)
-					value = this.ReadInt<LittleEndianConverter>();
+					value = this.readLittleEndian<int>();
 					break;
 				case 1:
 					//01 : An unsigned char (1 byte) follows
@@ -549,7 +551,7 @@ namespace ACadSharp.IO.DWG
 			switch (this.Read2Bits())
 			{
 				case 0:
-					value = this.ReadDouble<LittleEndianConverter>();
+					value = this.readLittleEndian<double>();
 					break;
 				case 1:
 					value = 1.0;
@@ -585,13 +587,13 @@ namespace ACadSharp.IO.DWG
 		/// <inheritdoc/>
 		public long ReadRawLong()
 		{
-			return this.ReadInt<LittleEndianConverter>();
+			return this.readLittleEndian<int>();
 		}
 
 		/// <inheritdoc/>
 		public ulong ReadRawULong()
 		{
-			return this.ReadULong<LittleEndianConverter>();
+			return this.readLittleEndian<ulong>();
 		}
 
 		/// <inheritdoc/>
@@ -820,10 +822,10 @@ namespace ACadSharp.IO.DWG
 
 		private ulong readHandle(int length)
 		{
-			byte[] raw = new byte[length];
-			byte[] arr = new byte[8];
+			Span<byte> raw = stackalloc byte[length];
+			Span<byte> arr = stackalloc byte[8];
 
-			if (this.Stream.Read(raw, 0, length) < length)
+			if (this.Stream.Read(raw) < length)
 				throw new EndOfStreamException();
 
 			if (this.BitShift == 0)
@@ -852,7 +854,7 @@ namespace ACadSharp.IO.DWG
 			for (int index = length; index < 8; ++index)
 				arr[index] = 0;
 
-			return LittleEndianConverter.Instance.ToUInt64(arr);
+			return BinaryPrimitives.ReadUInt64LittleEndian(arr);
 		}
 
 		#endregion Handle reference
@@ -957,7 +959,8 @@ namespace ACadSharp.IO.DWG
 		public double ReadBitDoubleWithDefault(double def)
 		{
 			//Get the bytes form the default value
-			byte[] arr = LittleEndianConverter.Instance.GetBytes(def);
+			Span<byte> arr = stackalloc byte[8];
+			BinaryPrimitives.WriteDoubleLittleEndian(arr, def);
 
 			switch (this.Read2Bits())
 			{
@@ -994,7 +997,7 @@ namespace ACadSharp.IO.DWG
 						this.AdvanceByte();
 						arr[3] |= (byte)((uint)this._lastByte >> shift);
 					}
-					return LittleEndianConverter.Instance.ToDouble(arr);
+					return BinaryPrimitives.ReadDoubleLittleEndian(arr);
 				//10 6 bytes of data are present. The result is the default double, with the first 2 data bytes patched in
 				//replacing bytes 5 and 6 of the default double, and the last 4 data bytes patched in replacing the first 4
 				//bytes of the default double(assuming little endian).
@@ -1035,10 +1038,10 @@ namespace ACadSharp.IO.DWG
 						this.AdvanceByte();
 						arr[3] |= (byte)((uint)this._lastByte >> 8 - this.BitShift);
 					}
-					return LittleEndianConverter.Instance.ToDouble(arr);
+					return BinaryPrimitives.ReadDoubleLittleEndian(arr);
 				//11 A full RD follows.
 				case 3:
-					return this.ReadDouble();
+					return this.readLittleEndian<double>();
 				default:
 					throw this.throwException();
 			}
@@ -1185,8 +1188,28 @@ namespace ACadSharp.IO.DWG
 
 		private void applyShiftToArr(int length, byte[] arr)
 		{
+			this.applyShiftToSpan(arr.AsSpan(0, length));
+		}
+
+		// a little endian value read at the current bit, without the array and the converters ReadBytes and StreamIO allocate per value.
+		private T readLittleEndian<T>() where T : unmanaged
+		{
+			Span<byte> bytes = stackalloc byte[Unsafe.SizeOf<T>()];
+			this.applyShiftToSpan(bytes);
+			if (!BitConverter.IsLittleEndian)
+			{
+				bytes.Reverse();
+			}
+
+			return MemoryMarshal.Read<T>(bytes);
+		}
+
+		private void applyShiftToSpan(Span<byte> arr)
+		{
+			int length = arr.Length;
+
 			//Empty Stream
-			if (this.Stream.Read(arr, 0, length) != length)
+			if (this.Stream.Read(arr) != length)
 				throw new EndOfStreamException();
 
 			if ((uint)this.BitShift <= 0U)
