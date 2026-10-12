@@ -82,5 +82,11 @@ internal class CadObjectReferenceHandler<TKey, TValue>
 			this.Owner = owner;
 			this.AssignTo = assignTo;
 		}
+
+		// holders compare by reference, the owner's number spares the identity hash slow path of a new holder.
+		public override int GetHashCode()
+		{
+			return this.Owner.GetHashCode();
+		}
 	}
 }
