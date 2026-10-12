@@ -155,10 +155,18 @@ public partial class Hatch : Entity, IOrientable
 		var newNormal = this.transformNormal(transform, this.Normal);
 		var worldTransform = this.getWorldMatrix(transform, this.Normal, newNormal, out Matrix3 transOW, out Matrix3 transWO);
 
+		var ocsTransform = new Transform(
+			Matrix4.GetArbitraryAxis(newNormal).Transpose()
+			* transform.Matrix
+			* Matrix4.GetArbitraryAxis(this.Normal)
+			* Matrix4.CreateTranslation(0, 0, this.Elevation));
+
 		foreach (BoundaryPath p in this.Paths)
 		{
-			p.ApplyTransform(transform);
+			p.ApplyTransform(ocsTransform);
 		}
+
+		this.Elevation = ocsTransform.ApplyTransform(XYZ.Zero).Z;
 
 		XY refAxis = XY.Rotate(XY.AxisX, this._patternAngle);
 		refAxis = this._patternScale * refAxis;
