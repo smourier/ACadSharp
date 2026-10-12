@@ -61,11 +61,11 @@ internal partial class DwgObjectWriter : DwgSectionIO
 
 	private void write4x3Matrix(Matrix4 matrix)
 	{
-		for (int i = 0; i < 3; i++)
+		for (int row = 0; row < 3; row++)
 		{
-			for (int j = 0; j < 4; j++)
+			for (int column = 0; column < 4; column++)
 			{
-				this._writer.WriteBitDouble(matrix[i, j]);
+				this._writer.WriteBitDouble(matrix[column, row]);
 			}
 		}
 	}
