@@ -7062,11 +7062,11 @@ namespace ACadSharp.IO.DWG
 		private Matrix4 read4x3Matrix()
 		{
 			Matrix4 identity = Matrix4.Identity;
-			for (int i = 0; i < 3; i++)
+			for (int row = 0; row < 3; row++)
 			{
-				for (int j = 0; j < 4; j++)
+				for (int column = 0; column < 4; column++)
 				{
-					identity[i, j] = this._mergedReaders.ReadBitDouble();
+					identity[column, row] = this._mergedReaders.ReadBitDouble();
 				}
 			}
 			return identity;
