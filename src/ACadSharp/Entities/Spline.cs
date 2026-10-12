@@ -270,7 +270,7 @@ public class Spline : Entity, IOrientable
 
 		double uDelta = (uEnd - uStart) * t;
 		double u = uStart + uDelta;
-		return c(controlPts, weights, knots, this.Degree, u);
+		return c(controlPts, weights, knots, this.Degree, u, isNonDecreasing(knots));
 	}
 
 	/// <summary>
@@ -300,11 +300,12 @@ public class Spline : Entity, IOrientable
 		}
 
 		double uDelta = (uEnd - uStart) / precision;
+		bool sortedKnots = isNonDecreasing(knots);
 
 		for (int i = 0; i < precision; i++)
 		{
 			double u = uStart + uDelta * i;
-			vertexes.Add(c(controlPts, weights, knots, this.Degree, u));
+			vertexes.Add(c(controlPts, weights, knots, this.Degree, u, sortedKnots));
 		}
 
 		if (!(this.IsClosed || this.IsPeriodic))
@@ -494,13 +495,39 @@ public class Spline : Entity, IOrientable
 		return list;
 	}
 
-	private static XYZ c(XYZ[] ctrlPoints, double[] weights, double[] knots, int degree, double u)
+	private static XYZ c(XYZ[] ctrlPoints, double[] weights, double[] knots, int degree, double u, bool sortedKnots)
 	{
 		XYZ vectorSum = XYZ.Zero;
 		double denominatorSum = 0.0;
 
+		// over sorted knots only the degree + 1 basis functions of the span holding u can be non zero,
+		// computeNurb returns exactly zero for every other one, so the sum and its order are unchanged.
+		int first = 0;
+		int last = ctrlPoints.Length - 1;
+		if (sortedKnots)
+		{
+			int low = 0;
+			int high = knots.Length;
+			while (low < high)
+			{
+				int middle = (low + high) / 2;
+				if (knots[middle] <= u)
+				{
+					low = middle + 1;
+				}
+				else
+				{
+					high = middle;
+				}
+			}
+
+			int span = low - 1;
+			first = Math.Max(0, span - degree);
+			last = Math.Min(last, span);
+		}
+
 		// optimization suggested by ThVoss
-		for (int i = 0; i < ctrlPoints.Length; i++)
+		for (int i = first; i <= last; i++)
 		{
 			double nurb = computeNurb(knots, i, degree, u);
 			if (nurb == 0)
@@ -734,6 +761,20 @@ public class Spline : Entity, IOrientable
 		}
 
 		return result;
+	}
+
+	// a NaN knot fails the comparison, so it counts as unsorted.
+	private static bool isNonDecreasing(double[] knots)
+	{
+		for (int i = 1; i < knots.Length; i++)
+		{
+			if (!(knots[i] >= knots[i - 1]))
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private static double computeNurb(double[] knots, int i, int p, double u)
