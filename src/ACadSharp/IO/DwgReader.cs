@@ -23,12 +23,18 @@ public class DwgReader : CadReaderBase<DwgReaderConfiguration>
 
 	private DwgFileHeader _fileHeader;
 
+	// set when the reader opened the file itself, so it may replace it with a copy in memory.
+	private readonly bool _ownsFile;
+
 	/// <summary>
 	/// Initializes a new instance of the <see cref="DwgReader"/> class.
 	/// </summary>
 	/// <param name="filename">The filename of the file to open.</param>
 	/// <param name="notification">Notification handler, sends any message or notification about the reading process.</param>
-	public DwgReader(string filename, NotificationEventHandler notification = null) : base(readFile(filename), notification) { }
+	public DwgReader(string filename, NotificationEventHandler notification = null) : base(filename, notification)
+	{
+		this._ownsFile = true;
+	}
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="DwgReader" /> class.
@@ -37,22 +43,19 @@ public class DwgReader : CadReaderBase<DwgReaderConfiguration>
 	/// <param name="notification">Notification handler, sends any message or notification about the reading process.</param>
 	public DwgReader(Stream stream, NotificationEventHandler notification = null) : base(stream, notification) { }
 
-	// the reader seeks to every page of the file and decompresses it a byte at a time, so a file is read into memory once,
-	// with the sharing CadReaderBase opens it with, and closed. one too large for an array is read from the disk.
-	private static Stream readFile(string filename)
+	// a whole document is read page by page, each page sought and decompressed a byte at a time, so the file is read
+	// into memory first and closed. ReadPreview and ReadHeader alone touch a few sections and keep reading the file,
+	// and a file too large for an array is read from the disk.
+	private void readFileIntoMemory()
 	{
-		var file = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-		if (file.Length > Array.MaxLength)
-		{
-			return file;
-		}
+		if (!this._ownsFile || this._fileStream.Stream is not FileStream file || file.Length > Array.MaxLength)
+			return;
 
-		using (file)
-		{
-			var bytes = new byte[file.Length];
-			file.ReadExactly(bytes);
-			return new MemoryStream(bytes, 0, bytes.Length, false, true);
-		}
+		var bytes = new byte[file.Length];
+		file.Position = 0L;
+		file.ReadExactly(bytes);
+		this._fileStream.Dispose();
+		this._fileStream = new StreamIO(new MemoryStream(bytes, 0, bytes.Length, false, true));
 	}
 
 	/// <summary>
@@ -120,6 +123,8 @@ public class DwgReader : CadReaderBase<DwgReaderConfiguration>
 	/// <inheritdoc/>
 	public override CadDocument Read()
 	{
+		this.readFileIntoMemory();
+
 		//Read the file header
 		this._fileHeader = this.readFileHeader();
 
