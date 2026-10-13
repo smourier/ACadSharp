@@ -24,7 +24,7 @@ public abstract class CadReaderBase<T> : ICadReader
 	/// </summary>
 	public T Configuration { get; set; } = new();
 
-	internal readonly StreamIO _fileStream;
+	internal StreamIO _fileStream;
 
 	protected readonly CadDocument _document = new CadDocument(false);
 
