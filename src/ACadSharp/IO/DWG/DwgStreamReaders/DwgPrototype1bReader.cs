@@ -238,11 +238,15 @@ internal class DwgPrototype1bReader : DwgSectionIO
 						Unknown2 = unknown2
 					};
 
-					for (int j = 0; j < value.BlobReference.PageCount; j++)
+					var pageSegments = new uint[value.BlobReference.PageCount];
+					for (int j = 0; j < pageSegments.Length; j++)
 					{
-						var segmentIndex = this._reader.ReadUInt();
-						var size = this._reader.ReadUInt();
+						pageSegments[j] = this._reader.ReadUInt();
+						_ = this._reader.ReadUInt();
+					}
 
+					foreach (uint segmentIndex in pageSegments)
+					{
 						this._reader.Position = (long)this._fileSegmentIndex.Entries[(int)segmentIndex].Offset;
 
 						Blob01 blob = new();
