@@ -495,6 +495,8 @@ public class Spline : Entity, IOrientable
 		return list;
 	}
 
+	private const int _maxStackDegree = 32;
+
 	private static XYZ c(XYZ[] ctrlPoints, double[] weights, double[] knots, int degree, double u, bool sortedKnots)
 	{
 		XYZ vectorSum = XYZ.Zero;
@@ -526,17 +528,61 @@ public class Spline : Entity, IOrientable
 			last = Math.Min(last, span);
 		}
 
-		// optimization suggested by ThVoss
-		for (int i = first; i <= last; i++)
+		// inside a non empty span the degree + 1 basis functions come out of one triangular pass,
+		// where the recursive definition evaluates the lower degree functions again for every one of them.
+		if (sortedKnots
+			&& degree <= _maxStackDegree
+			&& first == last - degree
+			&& last + degree < knots.Length
+			&& knots[last] <= u
+			&& u < knots[last + 1])
 		{
-			double nurb = computeNurb(knots, i, degree, u);
-			if (nurb == 0)
+			Span<double> basis = stackalloc double[degree + 1];
+			Span<double> left = stackalloc double[degree + 1];
+			Span<double> right = stackalloc double[degree + 1];
+			basis[0] = 1.0;
+			for (int j = 1; j <= degree; j++)
 			{
-				continue;
+				left[j] = u - knots[last + 1 - j];
+				right[j] = knots[last + j] - u;
+				double saved = 0.0;
+				for (int r = 0; r < j; r++)
+				{
+					double temp = basis[r] / (right[r + 1] + left[j - r]);
+					basis[r] = saved + right[r + 1] * temp;
+					saved = left[j - r] * temp;
+				}
+
+				basis[j] = saved;
 			}
 
-			denominatorSum += nurb * weights[i];
-			vectorSum += weights[i] * nurb * ctrlPoints[i];
+			for (int k = 0; k <= degree; k++)
+			{
+				double nurb = basis[k];
+				if (nurb == 0)
+				{
+					continue;
+				}
+
+				int i = first + k;
+				denominatorSum += nurb * weights[i];
+				vectorSum += weights[i] * nurb * ctrlPoints[i];
+			}
+		}
+		else
+		{
+			// optimization suggested by ThVoss
+			for (int i = first; i <= last; i++)
+			{
+				double nurb = computeNurb(knots, i, degree, u);
+				if (nurb == 0)
+				{
+					continue;
+				}
+
+				denominatorSum += nurb * weights[i];
+				vectorSum += weights[i] * nurb * ctrlPoints[i];
+			}
 		}
 
 		// avoid possible divided by zero error, this should never happen
