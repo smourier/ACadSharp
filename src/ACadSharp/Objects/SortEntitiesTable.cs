@@ -99,8 +99,9 @@ public partial class SortEntitiesTable : NonGraphicalObject, IDxfClassDefined, I
 	/// <inheritdoc/>
 	public IEnumerator<Sorter> GetEnumerator()
 	{
-		this._sorters.Sort();
-		return this._sorters.GetEnumerator();
+		List<Sorter> sorted = new List<Sorter>(this._sorters);
+		sorted.Sort();
+		return sorted.GetEnumerator();
 	}
 
 	/// <inheritdoc/>
