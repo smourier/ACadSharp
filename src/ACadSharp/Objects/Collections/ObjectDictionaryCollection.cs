@@ -167,7 +167,7 @@ public abstract class ObjectDictionaryCollection<T> : ICadCollection<T>, IObserv
 		this._referenceHandler.RemoveReference(name, owner);
 	}
 
-	internal T UpdateReference(CadObject owner, T entry, Action<T> assignValue)
+	internal T UpdateReference(CadObject owner, T entry, Action<CadObject, T> assignValue)
 	{
 		if (owner == null)
 		{
@@ -193,7 +193,7 @@ public abstract class ObjectDictionaryCollection<T> : ICadCollection<T>, IObserv
 
 		this.RemoveReference(existing.Name, owner);
 		this._referenceHandler.AddReference(existing.Name, owner, assignValue);
-		assignValue(existing);
+		assignValue(owner, existing);
 
 		return existing;
 	}

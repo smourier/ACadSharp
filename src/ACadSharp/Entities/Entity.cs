@@ -25,7 +25,7 @@ public abstract class Entity : CadObject, IEntity
 		get { return this._bookColor; }
 		set
 		{
-			this._bookColor = this.updateCollectionEntry(value, c => this._bookColor = c, this.Document?.Colors);
+			this._bookColor = this.updateCollectionEntry(value, static (owner, c) => ((Entity)owner)._bookColor = c, this.Document?.Colors);
 		}
 	}
 
@@ -68,7 +68,7 @@ public abstract class Entity : CadObject, IEntity
 				throw new ArgumentNullException(nameof(value));
 			}
 
-			this._layer = this.updateTableEntry(value, l => this._layer = l, this.Document?.Layers);
+			this._layer = this.updateTableEntry(value, static (owner, l) => ((Entity)owner)._layer = l, this.Document?.Layers);
 		}
 	}
 
@@ -92,7 +92,7 @@ public abstract class Entity : CadObject, IEntity
 				throw new ArgumentNullException(nameof(value));
 			}
 
-			this._lineType = this.updateTableEntry(value, l => this._lineType = l, this.Document?.LineTypes);
+			this._lineType = this.updateTableEntry(value, static (owner, l) => ((Entity)owner)._lineType = l, this.Document?.LineTypes);
 		}
 	}
 
@@ -111,7 +111,7 @@ public abstract class Entity : CadObject, IEntity
 		get { return this._material; }
 		set
 		{
-			this._material = this.updateCollectionEntry(value, m => this._material = m, this.Document?.Materials);
+			this._material = this.updateCollectionEntry(value, static (owner, m) => ((Entity)owner)._material = m, this.Document?.Materials);
 		}
 	}
 
@@ -251,11 +251,11 @@ public abstract class Entity : CadObject, IEntity
 	/// <inheritdoc/>
 	public LineType GetActiveLineType()
 	{
-		if (this.LineType.Name.Equals(LineType.ByLayerName, StringComparison.InvariantCultureIgnoreCase))
+		if (this.LineType.Name.Equals(LineType.ByLayerName, StringComparison.OrdinalIgnoreCase))
 		{
 			return this.Layer.LineType;
 		}
-		else if (this.LineType.Name.Equals(LineType.ByBlockName, StringComparison.InvariantCultureIgnoreCase)
+		else if (this.LineType.Name.Equals(LineType.ByBlockName, StringComparison.OrdinalIgnoreCase)
 			&& this.Owner is BlockRecord record)
 		{
 			return record.BlockEntity.LineType;
@@ -320,11 +320,11 @@ public abstract class Entity : CadObject, IEntity
 	{
 		base.AssignDocument(doc);
 
-		this._bookColor = this.updateCollectionEntry(this._bookColor, c => this._bookColor = c, doc.Colors);
-		this._material = this.updateCollectionEntry(this._material, m => this._material = m, doc.Materials);
+		this._bookColor = this.updateCollectionEntry(this._bookColor, static (owner, c) => ((Entity)owner)._bookColor = c, doc.Colors);
+		this._material = this.updateCollectionEntry(this._material, static (owner, m) => ((Entity)owner)._material = m, doc.Materials);
 
-		this._layer = this.updateTableEntry(this._layer ?? Layer.Default, l => this._layer = l, doc.Layers);
-		this._lineType = this.updateTableEntry(this._lineType ?? LineType.ByLayer, l => this._lineType = l, doc.LineTypes);
+		this._layer = this.updateTableEntry(this._layer ?? Layer.Default, static (owner, l) => ((Entity)owner)._layer = l, doc.Layers);
+		this._lineType = this.updateTableEntry(this._lineType ?? LineType.ByLayer, static (owner, l) => ((Entity)owner)._lineType = l, doc.LineTypes);
 	}
 
 	internal override void UnassignDocument()
