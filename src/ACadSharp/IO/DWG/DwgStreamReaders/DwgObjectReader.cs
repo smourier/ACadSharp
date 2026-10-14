@@ -57,7 +57,7 @@ namespace ACadSharp.IO.DWG
 
 		private readonly MemoryStream _memoryStream;
 
-		private readonly Dictionary<ulong, ObjectType> _readedObjects = new Dictionary<ulong, ObjectType>();
+		private readonly Dictionary<ulong, ObjectType> _readedObjects;
 
 		private readonly IDwgStreamReader _reader;
 
@@ -84,6 +84,13 @@ namespace ACadSharp.IO.DWG
 		/// </summary>
 		private IDwgStreamReader _objectReader;
 
+		// one reader per section of an object, moved from object to object,
+		// since a new set for each object allocated more than the objects themselves.
+		private IDwgStreamReader _objectSectionReader;
+		private IDwgStreamReader _handlesSectionReader;
+		private IDwgStreamReader _textSectionReader;
+		private DwgMergedReader _sectionMergedReader;
+
 		private uint _size;
 
 		/// <summary>
@@ -104,7 +111,8 @@ namespace ACadSharp.IO.DWG
 			this._reader = reader;
 
 			this._handles = new Queue<ulong>(handles);
-			this._map = new Dictionary<ulong, long>(handleMap);
+			this._map = handleMap;
+			this._readedObjects = new Dictionary<ulong, ObjectType>(handleMap.Count);
 			this._classes = classes.ToDictionary(x => x.ClassNumber, x => x);
 
 			if (this._reader.Stream is MemoryStream memoryStream)
@@ -187,6 +195,11 @@ namespace ACadSharp.IO.DWG
 			}
 		}
 
+		private IDwgStreamReader sectionReader(ref IDwgStreamReader reader)
+		{
+			return reader ??= DwgStreamReaderBase.GetStreamHandler(this._version, HugeMemoryStream.Clone(this._memoryStream), this._reader.Encoding);
+		}
+
 		private static bool looksLikeUtf16Le(byte[] buffer, int offset)
 		{
 			if (buffer == null || offset < 0 || offset + 1 >= buffer.Length)
@@ -240,7 +253,7 @@ namespace ACadSharp.IO.DWG
 				this._handleSectionOffset = (long)((ulong)this._crcReader.PositionInBits() + sizeInBits - handleSize);
 
 				//Create a handler section reader
-				this._objectReader = DwgStreamReaderBase.GetStreamHandler(this._version, HugeMemoryStream.Clone(this._memoryStream), this._reader.Encoding);
+				this._objectReader = this.sectionReader(ref this._objectSectionReader);
 				this._objectReader.SetPositionInBits(this._crcReader.PositionInBits());
 
 				//set the initial position and get the object type
@@ -248,22 +261,22 @@ namespace ACadSharp.IO.DWG
 				type = this._objectReader.ReadObjectType();
 
 				//Create a handler section reader
-				this._handlesReader = DwgStreamReaderBase.GetStreamHandler(this._version, HugeMemoryStream.Clone(this._memoryStream), this._reader.Encoding);
+				this._handlesReader = this.sectionReader(ref this._handlesSectionReader);
 				this._handlesReader.SetPositionInBits(this._handleSectionOffset);
 
 				//Create a text section reader
-				this._textReader = DwgStreamReaderBase.GetStreamHandler(this._version, HugeMemoryStream.Clone(this._memoryStream), this._reader.Encoding);
+				this._textReader = this.sectionReader(ref this._textSectionReader);
 				this._textReader.SetPositionByFlag(this._handleSectionOffset - 1);
 
-				this._mergedReaders = new DwgMergedReader(this._objectReader, this._textReader, this._handlesReader);
+				this._mergedReaders = this._sectionMergedReader ??= new DwgMergedReader(this._objectReader, this._textReader, this._handlesReader);
 			}
 			else
 			{
 				//Create a handler section reader
-				this._objectReader = DwgStreamReaderBase.GetStreamHandler(this._version, HugeMemoryStream.Clone(this._memoryStream), this._reader.Encoding);
+				this._objectReader = this.sectionReader(ref this._objectSectionReader);
 				this._objectReader.SetPositionInBits(this._crcReader.PositionInBits());
 
-				this._handlesReader = DwgStreamReaderBase.GetStreamHandler(this._version, HugeMemoryStream.Clone(this._memoryStream), this._reader.Encoding);
+				this._handlesReader = this.sectionReader(ref this._handlesSectionReader);
 				this._textReader = this._objectReader;
 
 				//set the initial position and get the object type
@@ -5615,6 +5628,10 @@ namespace ACadSharp.IO.DWG
 			//Common:
 			//Numentries BL number of entries
 			int numentries = this._mergedReaders.ReadBitLong();
+
+			// every entry takes at least a byte of the object, which bounds a corrupt count.
+			template.Values.EnsureCapacity((int)Math.Min((uint)Math.Max(numentries, 0), this._size));
+
 			//Sorthandle H
 			for (int i = 0; i < numentries; i++)
 			{
@@ -7049,7 +7066,7 @@ namespace ACadSharp.IO.DWG
 
 			if (this._version == ACadVersion.AC1021)
 			{
-				this._textReader = DwgStreamReaderBase.GetStreamHandler(this._version, HugeMemoryStream.Clone(this._memoryStream), this._reader.Encoding);
+				this._textReader = this.sectionReader(ref this._textSectionReader);
 				//"endbit" of the pre-handles section.
 				this._textReader.SetPositionByFlag(size + this._objectInitialPos - 1);
 			}

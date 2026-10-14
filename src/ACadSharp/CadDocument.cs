@@ -306,6 +306,11 @@ public class CadDocument : IHandledCadObject
 		}
 	}
 
+	internal void EnsureObjectCapacity(int capacity)
+	{
+		this._cadObjects.EnsureCapacity(capacity);
+	}
+
 	/// <summary>
 	/// Gets an object in the document by it's handle
 	/// </summary>

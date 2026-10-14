@@ -21,7 +21,25 @@ internal abstract class CadDocumentBuilder
 	/// Total number of objects the reader expects to add (e.g. the DWG handle map count), used to
 	/// report read-progress totals; 0 when not known (e.g. DXF).
 	/// </summary>
-	public int ExpectedObjectCount { get; set; }
+	public int ExpectedObjectCount
+	{
+		get
+		{
+			return this._expectedObjectCount;
+		}
+		set
+		{
+			this._expectedObjectCount = value;
+
+			// the maps get an entry per object read, sized once instead of grown through every power of two.
+			this.templatesMap.EnsureCapacity(value);
+			this.cadObjects.EnsureCapacity(value);
+			this.cadObjectsTemplates.EnsureCapacity(value);
+			this.DocumentToBuild.EnsureObjectCapacity(value);
+		}
+	}
+
+	private int _expectedObjectCount;
 
 	private int _readCount;
 	private int _buildCount;
