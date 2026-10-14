@@ -13,9 +13,18 @@ internal abstract class CadTemplate : ICadObjectTemplate
 
 	public DxfClass DxfClass { get; set; }
 
-	public Dictionary<ulong, List<ExtendedDataRecord>> EDataTemplate { get; set; } = new();
+	// created on first access, most objects carry no extended data and no reactors.
+	public Dictionary<ulong, List<ExtendedDataRecord>> EDataTemplate
+	{
+		get { return this._eDataTemplate ??= new(); }
+		set { this._eDataTemplate = value; }
+	}
 
-	public Dictionary<string, List<ExtendedDataRecord>> EDataTemplateByAppName { get; set; } = new();
+	public Dictionary<string, List<ExtendedDataRecord>> EDataTemplateByAppName
+	{
+		get { return this._eDataTemplateByAppName ??= new(); }
+		set { this._eDataTemplateByAppName = value; }
+	}
 
 	public bool HasBeenBuilt { get; private set; } = false;
 
@@ -23,7 +32,17 @@ internal abstract class CadTemplate : ICadObjectTemplate
 
 	public ulong? OwnerHandle { get; set; }
 
-	public HashSet<ulong> ReactorsHandles { get; set; } = new();
+	public HashSet<ulong> ReactorsHandles
+	{
+		get { return this._reactorsHandles ??= new(); }
+		set { this._reactorsHandles = value; }
+	}
+
+	private Dictionary<ulong, List<ExtendedDataRecord>> _eDataTemplate;
+
+	private Dictionary<string, List<ExtendedDataRecord>> _eDataTemplateByAppName;
+
+	private HashSet<ulong> _reactorsHandles;
 
 	public ulong? XDictHandle { get; set; }
 
@@ -79,39 +98,48 @@ internal abstract class CadTemplate : ICadObjectTemplate
 			this.CadObject.XDictionary = cadDictionary;
 		}
 
-		foreach (ulong handle in this.ReactorsHandles)
+		if (this._reactorsHandles != null)
 		{
-			if (builder.TryGetCadObject(handle, out CadObject reactor))
+			foreach (ulong handle in this._reactorsHandles)
 			{
-				this.CadObject.AddReactor(reactor);
-			}
-			else
-			{
-				builder.Notify($"Reactor with handle {handle} not found", NotificationType.Warning);
+				if (builder.TryGetCadObject(handle, out CadObject reactor))
+				{
+					this.CadObject.AddReactor(reactor);
+				}
+				else
+				{
+					builder.Notify($"Reactor with handle {handle} not found", NotificationType.Warning);
+				}
 			}
 		}
 
-		foreach (var item in this.EDataTemplate)
+		if (this._eDataTemplate != null)
 		{
-			if (builder.TryGetCadObject(item.Key, out AppId app))
+			foreach (var item in this._eDataTemplate)
 			{
-				this.CadObject.ExtendedData.Add(app, item.Value);
-			}
-			else
-			{
-				builder.Notify($"AppId in extended data with handle {item.Key} not found", NotificationType.Warning);
+				if (builder.TryGetCadObject(item.Key, out AppId app))
+				{
+					this.CadObject.ExtendedData.Add(app, item.Value);
+				}
+				else
+				{
+					builder.Notify($"AppId in extended data with handle {item.Key} not found", NotificationType.Warning);
+				}
 			}
 		}
 
-		foreach (var item in this.EDataTemplateByAppName)
+		if (this._eDataTemplateByAppName != null)
 		{
-			if (builder.TryGetTableEntry(item.Key, out AppId app))
+			foreach (var item in this._eDataTemplateByAppName)
 			{
-				this.CadObject.ExtendedData.Add(app, item.Value);
-			}
-			else
-			{
-				builder.Notify($"AppId in extended data with handle {item.Key} not found", NotificationType.Warning);
+				if (builder.TryGetTableEntry(item.Key, out AppId app))
+				{
+					this.CadObject.ExtendedData.Add(app, item.Value);
+				}
+				else
+				{
+					builder.Notify($"AppId in extended data with handle {item.Key} not found", NotificationType.Warning);
+				}
 			}
 		}
 	}
