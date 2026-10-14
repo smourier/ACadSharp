@@ -304,10 +304,32 @@ public abstract class CadObject : IHandledCadObject
 			return entry;
 		}
 
+		return collection.UpdateReference(this, entry, (_, value) => assignValue(value));
+	}
+
+	private protected T updateCollectionEntry<T>(T entry, Action<CadObject, T> assignValue, ObjectDictionaryCollection<T> collection)
+		where T : NonGraphicalObject
+	{
+		if (collection == null || entry == null)
+		{
+			return entry;
+		}
+
 		return collection.UpdateReference(this, entry, assignValue);
 	}
 
 	protected T updateTableEntry<T>(T entry, Action<T> assignValue, Table<T> table)
+		where T : TableEntry
+	{
+		if (table == null || entry == null)
+		{
+			return entry;
+		}
+
+		return table.UpdateReference(this, entry, (_, value) => assignValue(value));
+	}
+
+	private protected T updateTableEntry<T>(T entry, Action<CadObject, T> assignValue, Table<T> table)
 		where T : TableEntry
 	{
 		if (table == null || entry == null)

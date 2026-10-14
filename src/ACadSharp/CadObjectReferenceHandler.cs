@@ -16,7 +16,7 @@ internal class CadObjectReferenceHandler<TKey, TValue>
 	{
 	}
 
-	public void AddReference(TKey key, CadObject owner, Action<TValue> assignTo)
+	public void AddReference(TKey key, CadObject owner, Action<CadObject, TValue> assignTo)
 	{
 		if (!this._references.TryGetValue(key, out HashSet<ReferenceHolder> holders))
 		{
@@ -66,18 +66,18 @@ internal class CadObjectReferenceHandler<TKey, TValue>
 		{
 			foreach (var holder in holders)
 			{
-				holder.AssignTo(value);
+				holder.AssignTo(holder.Owner, value);
 			}
 		}
 	}
 
 	private sealed class ReferenceHolder
 	{
-		public Action<TValue> AssignTo { get; }
+		public Action<CadObject, TValue> AssignTo { get; }
 
 		public CadObject Owner { get; }
 
-		public ReferenceHolder(CadObject owner, Action<TValue> assignTo)
+		public ReferenceHolder(CadObject owner, Action<CadObject, TValue> assignTo)
 		{
 			this.Owner = owner;
 			this.AssignTo = assignTo;
