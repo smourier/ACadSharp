@@ -166,7 +166,11 @@ public class Leader : Entity, IOrientable
 	public override CadObject Clone()
 	{
 		Leader clone = (Leader)base.Clone();
-		clone.Style = (DimensionStyle)(this.Style?.Clone());
+		if (!_cloningShared)
+		{
+			clone.Style = (DimensionStyle)(this.Style?.Clone());
+		}
+
 		return clone;
 	}
 

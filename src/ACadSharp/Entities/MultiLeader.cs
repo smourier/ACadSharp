@@ -594,11 +594,14 @@ public partial class MultiLeader : Entity, IDxfClassDefined
 			clone.BlockAttributes.Add((BlockAttribute)att.Clone());
 		}
 
-		clone._style = (MultiLeaderStyle)this._style.Clone();
-		clone._textStyle = (TextStyle)this._textStyle.Clone();
-		clone._leaderLineType = (LineType)this._leaderLineType.Clone();
-		clone._arrowhead = (BlockRecord)this._arrowhead?.Clone();
-		clone._blockContent = (BlockRecord)this._blockContent?.Clone();
+		if (!_cloningShared)
+		{
+			clone._style = (MultiLeaderStyle)this._style.Clone();
+			clone._textStyle = (TextStyle)this._textStyle.Clone();
+			clone._leaderLineType = (LineType)this._leaderLineType.Clone();
+			clone._arrowhead = (BlockRecord)this._arrowhead?.Clone();
+			clone._blockContent = (BlockRecord)this._blockContent?.Clone();
+		}
 
 		return clone;
 	}

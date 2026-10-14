@@ -277,8 +277,11 @@ public abstract class Dimension : Entity, IOrientable
 	{
 		Dimension clone = (Dimension)base.Clone();
 
-		clone._style = this.Style.CloneTyped();
-		clone._block = this.Block?.CloneTyped();
+		if (!_cloningShared)
+		{
+			clone._style = this.Style.CloneTyped();
+			clone._block = this.Block?.CloneTyped();
+		}
 
 		return clone;
 	}

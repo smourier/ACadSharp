@@ -109,7 +109,10 @@ public partial class MLine : Entity, IOrientable
 	{
 		MLine clone = (MLine)base.Clone();
 
-		clone.Style = (MLineStyle)(this.Style?.Clone());
+		if (!_cloningShared)
+		{
+			clone.Style = (MLineStyle)(this.Style?.Clone());
+		}
 
 		clone.Vertices = new List<Vertex>();
 		foreach (var item in this.Vertices)

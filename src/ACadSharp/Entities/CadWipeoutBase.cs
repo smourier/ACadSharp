@@ -221,7 +221,10 @@ public abstract class CadWipeoutBase : Entity
 	{
 		CadWipeoutBase clone = (CadWipeoutBase)base.Clone();
 
-		clone.Definition = (ImageDefinition)this.Definition?.Clone();
+		if (!_cloningShared)
+		{
+			clone.Definition = (ImageDefinition)this.Definition?.Clone();
+		}
 
 		return clone;
 	}
