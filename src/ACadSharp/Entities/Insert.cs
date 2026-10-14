@@ -298,7 +298,10 @@ public class Insert : Entity, IOrientable
 	{
 		Insert clone = (Insert)base.Clone();
 
-		clone.Block = (BlockRecord)this.Block?.Clone();
+		if (!_cloningShared)
+		{
+			clone.Block = (BlockRecord)this.Block?.Clone();
+		}
 
 		clone.initCollections();
 		foreach (var att in this.Attributes)

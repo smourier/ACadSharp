@@ -117,7 +117,10 @@ public class Shape : Entity, IOrientable
 	{
 		Shape clone = (Shape)base.Clone();
 
-		clone.ShapeStyle = (TextStyle)(this.ShapeStyle?.Clone());
+		if (!_cloningShared)
+		{
+			clone.ShapeStyle = (TextStyle)(this.ShapeStyle?.Clone());
+		}
 
 		return clone;
 	}

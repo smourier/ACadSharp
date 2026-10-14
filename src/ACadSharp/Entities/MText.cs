@@ -310,7 +310,11 @@ public partial class MText : Entity, IText
 	{
 		MText clone = (MText)base.Clone();
 
-		clone.Style = (TextStyle)(this.Style?.Clone());
+		if (!_cloningShared)
+		{
+			clone.Style = (TextStyle)(this.Style?.Clone());
+		}
+
 		clone.ColumnData = this.ColumnData?.Clone();
 
 		return clone;

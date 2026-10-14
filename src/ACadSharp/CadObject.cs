@@ -159,6 +159,35 @@ public abstract class CadObject : IHandledCadObject
 	}
 
 	/// <summary>
+	/// Creates a copy of this object that shares the table entries, blocks, styles and dictionaries it references,
+	/// for code that reads a document and transforms or draws a copy, where <see cref="Clone"/> copies all of those too.
+	/// </summary>
+	/// <remarks>
+	/// The copy belongs to no document, like a <see cref="Clone"/>, and its own geometry is copied the same way.
+	/// A shared reference changed through the copy changes the document.
+	/// </remarks>
+	/// <returns>The copy.</returns>
+	public CadObject CloneShared()
+	{
+		bool previous = _cloningShared;
+		_cloningShared = true;
+		try
+		{
+			return this.Clone();
+		}
+		finally
+		{
+			_cloningShared = previous;
+		}
+	}
+
+	/// <summary>
+	/// True while <see cref="CloneShared"/> runs on this thread, the overrides of <see cref="Clone"/> then keep their references.
+	/// </summary>
+	[ThreadStatic]
+	private protected static bool _cloningShared;
+
+	/// <summary>
 	/// Creates a new object that is a copy of the current instance.
 	/// </summary>
 	/// <remarks>
@@ -179,7 +208,10 @@ public abstract class CadObject : IHandledCadObject
 		//source object. The instances of the clone are created on first access.
 		clone._reactors = null;
 		clone._extendedData = null;
-		clone.XDictionary = this._xdictionary?.CloneTyped();
+		if (!_cloningShared)
+		{
+			clone.XDictionary = this._xdictionary?.CloneTyped();
+		}
 
 		return clone;
 	}

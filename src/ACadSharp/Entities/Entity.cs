@@ -171,9 +171,12 @@ public abstract class Entity : CadObject, IEntity
 	{
 		Entity clone = (Entity)base.Clone();
 
-		clone.Layer = (Layer)this.Layer.Clone();
-		clone.LineType = (LineType)this.LineType.Clone();
-		clone.Material = (Material)this.Material?.Clone();
+		if (!_cloningShared)
+		{
+			clone.Layer = (Layer)this.Layer.Clone();
+			clone.LineType = (LineType)this.LineType.Clone();
+			clone.Material = (Material)this.Material?.Clone();
+		}
 
 		return clone;
 	}

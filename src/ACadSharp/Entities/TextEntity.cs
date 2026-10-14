@@ -285,7 +285,11 @@ public class TextEntity : Entity, IText
 	public override CadObject Clone()
 	{
 		TextEntity clone = (TextEntity)base.Clone();
-		clone._style = (TextStyle)this.Style.Clone();
+		if (!_cloningShared)
+		{
+			clone._style = (TextStyle)this.Style.Clone();
+		}
+
 		return clone;
 	}
 
