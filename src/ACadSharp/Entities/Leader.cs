@@ -166,6 +166,7 @@ public class Leader : Entity, IOrientable
 	public override CadObject Clone()
 	{
 		Leader clone = (Leader)base.Clone();
+		clone.Vertices = new List<XYZ>(this.Vertices);
 		if (!_cloningShared)
 		{
 			clone.Style = (DimensionStyle)(this.Style?.Clone());
