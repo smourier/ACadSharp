@@ -823,6 +823,13 @@ public class Spline : Entity, IOrientable
 		return true;
 	}
 
+	// a sorted knot vector of the standard length describes the whole curve as written, the closed and periodic flags included,
+	// a closed spline already ends on its first control point, so it is evaluated as stored, its knots neither replaced nor wrapped.
+	private bool hasStoredCurve(double[] knots)
+	{
+		return knots.Length > 0 && knots.Length == this.ControlPoints.Count + this.Degree + 1 && isNonDecreasing(knots);
+	}
+
 	private static double computeNurb(double[] knots, int i, int p, double u)
 	{
 		if (p <= 0)
@@ -995,7 +1002,7 @@ public class Spline : Entity, IOrientable
 
 	private void getStartAndEndKnots(double[] knots, out double uStart, out double uEnd)
 	{
-		if (this.IsClosed)
+		if (this.IsClosed && !this.hasStoredCurve(knots))
 		{
 			uStart = knots[0];
 			uEnd = knots[knots.Length - 1];
@@ -1031,12 +1038,13 @@ public class Spline : Entity, IOrientable
 		}
 
 		// knots
-		if (knots.Length == 0 || !this.HasValidKnotCount)
+		bool stored = this.hasStoredCurve(knots);
+		if (knots.Length == 0 || (!stored && !this.HasValidKnotCount))
 		{
 			knots = createKnotVector(numCtrlPoints, this.Degree, this.IsPeriodic);
 		}
 
-		if (this.IsPeriodic)
+		if (this.IsPeriodic && !stored)
 		{
 			controlPts = new XYZ[numCtrlPoints + this.Degree];
 			weights = new double[numCtrlPoints + this.Degree];
