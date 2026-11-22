@@ -77,6 +77,10 @@ internal class CadEntityTemplate : CadTemplate<Entity>
 			builder.Notify($"Layer {this.LayerName} not found in the LAYER table, created for {this.CadObject.GetType().FullName} with handle {this.CadObject.Handle}", NotificationType.Warning);
 			this.CadObject.Layer = builder.Layers.TryAdd(new Layer(this.LayerName));
 		}
+		else if (!this.CadObject.HasLayer && builder.Layers.TryGetValue(Layer.DefaultName, out Layer defaultLayer))
+		{
+			this.CadObject.Layer = defaultLayer;
+		}
 
 		switch (this.LtypeFlags)
 		{
@@ -97,6 +101,10 @@ internal class CadEntityTemplate : CadTemplate<Entity>
 		if (this.getTableReference<LineType>(builder, this.LineTypeHandle, this.LineTypeName, out LineType ltype))
 		{
 			this.CadObject.LineType = ltype;
+		}
+		else if (!this.CadObject.HasLineType && builder.LineTypesTable.TryGetValue(LineType.ByLayerName, out LineType byLayer))
+		{
+			this.CadObject.LineType = byLayer;
 		}
 
 		BookColor color;

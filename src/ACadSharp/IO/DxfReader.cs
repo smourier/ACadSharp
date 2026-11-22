@@ -251,7 +251,15 @@ public class DxfReader : CadReaderBase<DxfReaderConfiguration>
 			this._document.Header = new CadHeader(this._document);
 		}
 
-		this._builder.BuildDocument();
+		Entity._buildingDocument = true;
+		try
+		{
+			this._builder.BuildDocument();
+		}
+		finally
+		{
+			Entity._buildingDocument = false;
+		}
 
 		this._builder.BuildDataStorage();
 

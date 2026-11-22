@@ -147,7 +147,16 @@ public class DwgReader : CadReaderBase<DwgReaderConfiguration>
 		this.readObjects();
 		this.readAuxHeader();
 
-		this._builder.BuildDocument();
+		Entities.Entity._buildingDocument = true;
+		try
+		{
+			this._builder.BuildDocument();
+		}
+		finally
+		{
+			Entities.Entity._buildingDocument = false;
+		}
+
 		this._builder.BuildDataStorage();
 
 		return this._document;

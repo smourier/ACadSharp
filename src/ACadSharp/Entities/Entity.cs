@@ -145,6 +145,13 @@ public abstract class Entity : CadObject, IEntity
 	[DxfCodeValue(440)]
 	public Transparency Transparency { get; set; } = Transparency.ByLayer;
 
+	/// <summary>
+	/// True while a reader builds a document on this thread. The reader gives an entity its layer and line type,
+	/// the defaults included, so the defaults are not linked when the entity joins the document.
+	/// </summary>
+	[ThreadStatic]
+	internal static bool _buildingDocument;
+
 	private BookColor _bookColor = null;
 
 	private Layer _layer = null;
@@ -157,6 +164,10 @@ public abstract class Entity : CadObject, IEntity
 
 	/// <inheritdoc/>
 	public Entity() : base() { }
+
+	internal bool HasLayer => this._layer != null;
+
+	internal bool HasLineType => this._lineType != null;
 
 	/// <summary>
 	/// Apply a rotation to this entity.
@@ -326,8 +337,18 @@ public abstract class Entity : CadObject, IEntity
 		this._bookColor = this.updateCollectionEntry(this._bookColor, static (owner, c) => ((Entity)owner)._bookColor = c, doc.Colors);
 		this._material = this.updateCollectionEntry(this._material, static (owner, m) => ((Entity)owner)._material = m, doc.Materials);
 
-		this._layer = this.updateTableEntry(this._layer ?? Layer.Default, static (owner, l) => ((Entity)owner)._layer = l, doc.Layers);
-		this._lineType = this.updateTableEntry(this._lineType ?? LineType.ByLayer, static (owner, l) => ((Entity)owner)._lineType = l, doc.LineTypes);
+		// a reader attaches its entities before it sets their layer and line type, linking the defaults then
+		// made a layer, a line type and two references for each entity, all replaced right after.
+		Layer layer = this._layer;
+		LineType lineType = this._lineType;
+		if (!_buildingDocument)
+		{
+			layer ??= doc.Layers != null && doc.Layers.TryGetValue(Layer.DefaultName, out Layer defaultLayer) ? defaultLayer : Layer.Default;
+			lineType ??= doc.LineTypes != null && doc.LineTypes.TryGetValue(LineType.ByLayerName, out LineType byLayer) ? byLayer : LineType.ByLayer;
+		}
+
+		this._layer = this.updateTableEntry(layer, static (owner, l) => ((Entity)owner)._layer = l, doc.Layers);
+		this._lineType = this.updateTableEntry(lineType, static (owner, l) => ((Entity)owner)._lineType = l, doc.LineTypes);
 	}
 
 	internal override void UnassignDocument()
