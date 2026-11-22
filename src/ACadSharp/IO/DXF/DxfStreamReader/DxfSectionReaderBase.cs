@@ -659,13 +659,18 @@ internal abstract class DxfSectionReaderBase
 
 	protected bool tryAssignCurrentValue(CadObject cadObject, DxfMap map)
 	{
-		if (this._builder.Version < ACadVersion.AC1012)
+		// without subclass markers a code goes to the first class of the object that defines it, the center of an arc
+		// is a circle's. Minimal writers leave the markers out even when they declare a recent $ACADVER.
+		if (this._builder.Version < ACadVersion.AC1012 || string.IsNullOrEmpty(this.currentSubclass))
 		{
-			this.currentSubclass = cadObject.SubclassMarker;
-		}
+			foreach (var candidate in map.SubClasses.Values)
+			{
+				if (this.tryAssignCurrentValue(cadObject, candidate))
+				{
+					return true;
+				}
+			}
 
-		if (string.IsNullOrEmpty(this.currentSubclass))
-		{
 			return false;
 		}
 
