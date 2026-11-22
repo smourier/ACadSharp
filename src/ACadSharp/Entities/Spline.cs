@@ -278,7 +278,7 @@ public class Spline : Entity, IOrientable
 	/// </summary>
 	/// <remarks>The method calculates the vertex points by dividing the curve into segments based on the specified
 	/// precision. If the curve is not closed or periodic, the last control point is explicitly added to the
-	/// result.</remarks>
+	/// result. A knot repeated degree times or more is a corner of the curve, it gets a vertex of its own.</remarks>
 	/// <param name="precision">The number of segments used to approximate the curve. Must be equal to or greater than 2.</param>
 	/// <returns>A list of <see cref="XYZ"/> objects representing the vertex points of the polygonal approximation.</returns>
 	/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="precision"/> is less than 2.</exception>
@@ -301,11 +301,22 @@ public class Spline : Entity, IOrientable
 
 		double uDelta = (uEnd - uStart) / precision;
 		bool sortedKnots = isNonDecreasing(knots);
+		int nextKnot = this.Degree + 1;
 
 		for (int i = 0; i < precision; i++)
 		{
 			double u = uStart + uDelta * i;
+			if (sortedKnots)
+			{
+				nextKnot = addCorners(vertexes, controlPts, weights, knots, this.Degree, nextKnot, uStart, u);
+			}
+
 			vertexes.Add(c(controlPts, weights, knots, this.Degree, u, sortedKnots));
+		}
+
+		if (sortedKnots)
+		{
+			addCorners(vertexes, controlPts, weights, knots, this.Degree, nextKnot, uStart, uEnd);
 		}
 
 		if (!(this.IsClosed || this.IsPeriodic))
@@ -474,6 +485,31 @@ public class Spline : Entity, IOrientable
 		this.Weights = Enumerable.Repeat(1.0d, this.ControlPoints.Count).ToList();
 
 		return true;
+	}
+
+	// a knot repeated degree times or more is a corner of the curve, which a sample on either side of it would cut.
+	// adds a vertex at each corner before u and returns the index of the first knot not yet visited.
+	private static int addCorners(List<XYZ> vertexes, XYZ[] controlPts, double[] weights, double[] knots, int degree, int nextKnot, double uStart, double u)
+	{
+		int end = knots.Length - 1 - degree;
+		while (nextKnot < end && knots[nextKnot] <= u)
+		{
+			double knot = knots[nextKnot];
+			int multiplicity = 1;
+			while (nextKnot + multiplicity < end && knots[nextKnot + multiplicity] == knot)
+			{
+				multiplicity++;
+			}
+
+			if (multiplicity >= degree && knot > uStart && knot < u)
+			{
+				vertexes.Add(c(controlPts, weights, knots, degree, knot, true));
+			}
+
+			nextKnot += multiplicity;
+		}
+
+		return nextKnot;
 	}
 
 	private static List<double> addSideKnots(int degree, double[] knots)
